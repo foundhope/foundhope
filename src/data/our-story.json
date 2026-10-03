@@ -1,0 +1,44 @@
+{
+  "hero": {
+    "label": "Our story",
+    "headline": "Great produce. *Every time.*",
+    "sub": "216–218 Hither Green Lane",
+    "paragraphs": [
+      "Found Hope opened in August 2020 on Hither Green Lane, in the space that used to be the Good Hope Café.",
+      "The idea was simple. Fill a neighbourhood shop with things we love, then share them with the people who live round the corner."
+    ]
+  },
+  "history": {
+    "label": "The shop",
+    "headline": "A café on this corner *since 2010*",
+    "image": "shopfront-sketch",
+    "imageAlt": "Illustration of the Found Hope shopfront on Hither Green Lane",
+    "timeline": [
+      { "when": "2010", "text": "Good Hope Café opens at 216–218 Hither Green Lane." },
+      { "when": "August 2020", "text": "Found Hope takes over the space: coffee, food and a bottle shop under one roof." },
+      { "when": "Today", "text": "Run by chef Nick and his team, with produce from our favourite small suppliers and plenty made in our own kitchen." }
+    ]
+  },
+  "values": {
+    "headline": "What we *believe*",
+    "items": [
+      { "title": "People", "text": "A warm welcome for everyone who walks in. Respect for our customers, our team and our suppliers." },
+      { "title": "Community", "text": "A proper neighbourhood shop. We're here for Hither Green, and we want everyone to feel at home." },
+      { "title": "Product", "text": "Great produce, every time. Seasonal, from our favourite suppliers, and made by us when we can." },
+      { "title": "Sustainability", "text": "Low waste, growers who care for the land, and a shop built to be here for the long run." }
+    ]
+  },
+  "nick": {
+    "label": "Owner and chef",
+    "headline": "Meet *Nick*",
+    "image": "kitchen",
+    "imageAlt": "Squash soup with pumpkin seeds and sourdough, from Nick's kitchen",
+    "paragraphs": [
+      "Nick trained as a commis chef at Brocket Hall in Hertfordshire, where at 18 he met his lifelong friend Bill.",
+      "In 2000 he moved to London to cook under Marcus Wareing at Pétrus. He went on to work in some of the city's best kitchens: the Savoy Grill, Pétrus again as it won two Michelin stars, La Noisette, Eastside Inn and Michelin-starred Wild Honey. He then led the kitchens at the Gilbert Scott and Ealing Park Tavern.",
+      "In 2020 he came full circle, joining Bill as head chef at Found Hope. When Bill decided to sell, Nick saw a legacy worth protecting and bought it himself."
+    ],
+    "quote": "Michelin-level cooking. *Neighbourhood shop.*",
+    "team": "Around him, Nick has built a team of passionate, like-minded people who are the heart and soul of Found Hope. They love nothing more than sharing what they know about food and drink with you."
+  }
+}

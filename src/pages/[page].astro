@@ -6,7 +6,6 @@ import ComingSoon from '../components/ComingSoon.astro';
 
 export function getStaticPaths() {
   return [
-    { params: { page: 'our-story' }, props: { title: 'Our story' } },
     { params: { page: 'food-and-drink' }, props: { title: 'Food & Drink' } },
     { params: { page: 'whats-on' }, props: { title: "What's on", note: 'Nothing booked just yet. Follow us on Instagram to hear about our next event first.' } },
     { params: { page: 'suppliers' }, props: { title: 'Our suppliers' } },

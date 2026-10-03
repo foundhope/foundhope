@@ -1,0 +1,144 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { img, emphasis } from '../lib/content';
+import story from '../data/our-story.json';
+
+const { hero, history, values, nick } = story;
+---
+<Layout
+  title="Our story"
+  description="Found Hope opened in August 2020 on Hither Green Lane, in the old Good Hope Café. Meet Nick, our owner and chef, and find out what we believe in."
+>
+  <!-- HERO -->
+  <section class="shero">
+    <div class="wrap shero__grid">
+      <div class="shero__head">
+        <span class="caps eyebrow shero__label">{hero.label}</span>
+        <h1 class="serif shero__title" set:html={emphasis(hero.headline)} />
+        <span class="caps shero__sub">{hero.sub}</span>
+      </div>
+      <div class="shero__text">
+        {hero.paragraphs.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="history" aria-labelledby="history-title">
+    <div class="wrap history__grid">
+      <Image src={img(history.image)} alt={history.imageAlt} widths={[480, 760, 1100]} sizes="(min-width: 1000px) 560px, 100vw" class="history__img" />
+      <div class="history__body">
+        <span class="caps eyebrow">{history.label}</span>
+        <h2 id="history-title" class="serif h-big" set:html={emphasis(history.headline)} />
+        <ol class="timeline">
+          {history.timeline.map((t) => (
+            <li>
+              <span class="caps timeline__when">{t.when}</span>
+              <span class="timeline__text">{t.text}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES -->
+  <section class="values" aria-labelledby="values-title">
+    <div class="wrap values__grid">
+      <h2 id="values-title" class="serif values__title" set:html={emphasis(values.headline)} />
+      <ol class="values__list">
+        {values.items.map((v, i) => (
+          <li>
+            <span class="mono values__n">{String(i + 1).padStart(2, '0')}</span>
+            <span class="caps values__name">{v.title}</span>
+            <p>{v.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- NICK -->
+  <section class="split nick" aria-labelledby="nick-title">
+    <div class="split__media">
+      <Image src={img(nick.image)} alt={nick.imageAlt} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />
+    </div>
+    <div class="split__body nick__body">
+      <span class="caps eyebrow">{nick.label}</span>
+      <h2 id="nick-title" class="serif h-big" set:html={emphasis(nick.headline)} />
+      {nick.paragraphs.map((p) => <p class="nick__p">{p}</p>)}
+      <p class="serif nick__quote" set:html={emphasis(nick.quote)} />
+      <p class="nick__p">{nick.team}</p>
+      <a href="/suppliers" class="caps text-link">Meet our suppliers</a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="wrap cta__inner">
+      <h2 class="serif cta__title">Come and <em>say hello</em></h2>
+      <div class="cta__buttons">
+        <a href="/#visit" class="btn cta__btn">Plan a visit</a>
+        <a href="/whats-on" class="btn cta__btn cta__btn--ghost">What's on</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Hero */
+  .shero { padding-block: clamp(56px, 8vw, 110px); }
+  .shero__grid { display: grid; gap: 32px; align-items: center; }
+  .shero__head { display: flex; flex-direction: column; gap: 22px; }
+  .shero__label { font-size: 15px; letter-spacing: 0.24em; }
+  .shero__title { font-size: clamp(54px, 7vw, 88px); }
+  .shero__sub { font-size: 13px; letter-spacing: 0.16em; color: var(--muted); }
+  .shero__text { display: flex; flex-direction: column; gap: 18px; font-size: 18px; line-height: 1.65; color: var(--ink-soft); max-width: 34em; }
+  @media (min-width: 1000px) {
+    .shero__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 64px; }
+  }
+
+  /* History */
+  .history { background: var(--stone); padding-block: var(--section); }
+  .history__grid { display: grid; gap: 40px; align-items: center; }
+  .history__img { width: 100%; height: auto; mix-blend-mode: multiply; }
+  .history__body { display: flex; flex-direction: column; gap: 22px; }
+  .timeline { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
+  .timeline li { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 18px 0; border-top: 1px solid var(--rule); }
+  .timeline li:last-child { border-bottom: 1px solid var(--rule); }
+  .timeline__when { font-size: 13px; color: var(--accent-text); }
+  .timeline__text { font-size: 17px; line-height: 1.55; color: var(--ink-soft); }
+  @media (min-width: 640px) {
+    .timeline li { grid-template-columns: 140px minmax(0, 1fr); gap: 20px; align-items: baseline; }
+  }
+  @media (min-width: 1000px) {
+    .history__grid { grid-template-columns: 560px minmax(0, 1fr); gap: 64px; }
+  }
+
+  /* Values */
+  .values { background: var(--stone-2); padding-block: var(--section); }
+  .values__grid { display: grid; gap: 40px; }
+  .values__title { font-size: clamp(42px, 5vw, 56px); }
+  .values__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .values__list li { display: flex; flex-direction: column; gap: 12px; border-top: 2px solid var(--ink); padding-top: 20px; }
+  .values__n { font-size: 13px; color: var(--accent-text); }
+  .values__name { font-size: 15px; }
+  .values__list p { font-size: 16px; line-height: 1.55; color: #3a3935; }
+
+  /* Nick */
+  .nick__body { gap: 18px; }
+  .nick__p { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 36em; }
+  .nick__quote { font-size: clamp(26px, 2.6vw, 32px); line-height: 1.15; margin-block: 6px; }
+  @media (min-width: 900px) { .nick .split__media { min-height: 720px; } }
+
+  /* CTA */
+  .cta { background: var(--accent); color: #fff; padding-block: clamp(56px, 7vw, 88px); }
+  .cta__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px 40px; }
+  .cta__title { font-size: clamp(42px, 5vw, 60px); }
+  .cta__buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+  .cta__btn { background: #fff; color: var(--ink); }
+  .cta__btn:hover { background: var(--stone-2); color: var(--ink); }
+  .cta__btn--ghost { background: transparent; color: #fff; border: 1.5px solid #fff; }
+  .cta__btn--ghost:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+</style>
