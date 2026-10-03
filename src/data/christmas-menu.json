@@ -1,0 +1,138 @@
+{
+  "priceList": "2025",
+  "note": "Prices in pence. Weight-priced items are sold by size; the price shown is approximate until weighed. Tiers marked confirm: true are best guesses from the 2025 list and need Nick to check.",
+  "categories": [
+    {
+      "id": "turkey",
+      "title": "Turkey",
+      "source": "Sladesdown Poultry, Devon",
+      "blurb": "Free range, non-GM and pasture-raised, from Sladesdown in Newton Abbot.",
+      "image": "turkey",
+      "imageAlt": "Free-range turkey",
+      "items": [
+        {
+          "id": "turkey", "name": "Whole turkey", "detail": "Free range. Priced on the final weight.",
+          "perKg": 2400,
+          "tiers": [
+            { "id": "4-5", "label": "4–5kg", "price": 10800 },
+            { "id": "5-6", "label": "5–6kg", "price": 13200 },
+            { "id": "6-7", "label": "6–7kg", "price": 15600 }
+          ]
+        },
+        { "id": "turkey-breast", "name": "Turkey breast", "detail": "1.5–2kg each.", "price": 2600, "confirm": true }
+      ]
+    },
+    {
+      "id": "beef",
+      "title": "Rare breed beef",
+      "source": "Cumbria",
+      "blurb": "Rare breed Cumbrian beef, on the bone or as a whole fillet.",
+      "image": "meat",
+      "imageAlt": "Rare breed beef cuts",
+      "items": [
+        {
+          "id": "fore-rib", "name": "Fore rib", "detail": "On the bone, about 1.5kg per rib.",
+          "perKg": 3500,
+          "tiers": [
+            { "id": "1-rib", "label": "1 rib (1.5kg)", "price": 5250 },
+            { "id": "2-rib", "label": "2 ribs (3kg)", "price": 10500 },
+            { "id": "3-rib", "label": "3 ribs (4.5kg)", "price": 15750 }
+          ]
+        },
+        {
+          "id": "fillet", "name": "Whole fillet", "detail": "2.5–3kg.",
+          "perKg": 9000,
+          "tiers": [
+            { "id": "2.5kg", "label": "About 2.5kg", "price": 22500 },
+            { "id": "3kg", "label": "About 3kg", "price": 27000 }
+          ]
+        },
+        {
+          "id": "topside", "name": "Topside", "detail": "From 500g.",
+          "perKg": 3500, "confirm": true,
+          "tiers": [
+            { "id": "1kg", "label": "About 1kg", "price": 3500 },
+            { "id": "1.5kg", "label": "About 1.5kg", "price": 5250 },
+            { "id": "2kg", "label": "About 2kg", "price": 7000 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "poultry-game",
+      "title": "Poultry, lamb, pork and game",
+      "source": "Sladesdown, Herdwick and more",
+      "blurb": "Free-range birds from Sladesdown, Herdwick lamb, Berkshire pork and Brett Graham's venison.",
+      "image": "lamb",
+      "imageAlt": "Herdwick lamb cuts",
+      "items": [
+        { "id": "chicken", "name": "Chicken", "detail": "Sladesdown, about 2kg.", "perKg": 1600, "tiers": [{ "id": "2kg", "label": "About 2kg", "price": 3200 }] },
+        { "id": "duck", "name": "Duck", "detail": "Sladesdown, about 2kg.", "perKg": 2200, "tiers": [{ "id": "2kg", "label": "About 2kg", "price": 4400 }] },
+        { "id": "guinea-fowl", "name": "Guinea fowl", "detail": "Sladesdown, about 2kg.", "perKg": 2400, "tiers": [{ "id": "2kg", "label": "About 2kg", "price": 4800 }], "confirm": true },
+        { "id": "lamb-leg", "name": "Herdwick lamb leg", "detail": "Bone in.", "perKg": 2400, "tiers": [{ "id": "1kg", "label": "About 1kg", "price": 2400 }], "confirm": true },
+        { "id": "lamb-shoulder", "name": "Herdwick lamb shoulder", "detail": "Bone in.", "perKg": 2500, "tiers": [{ "id": "1kg", "label": "About 1kg", "price": 2500 }], "confirm": true },
+        { "id": "pork-loin", "name": "Berkshire pork loin", "detail": "On the bone.", "perKg": 2000, "tiers": [{ "id": "1kg", "label": "About 1kg", "price": 2000 }], "confirm": true },
+        {
+          "id": "venison", "name": "Venison haunch", "detail": "From Brett Graham. From 500g.", "perKg": 5000, "confirm": true,
+          "tiers": [
+            { "id": "500g", "label": "About 500g", "price": 2500 },
+            { "id": "1kg", "label": "About 1kg", "price": 5000 },
+            { "id": "1.5kg", "label": "About 1.5kg", "price": 7500 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "title": "From our kitchen",
+      "source": "Made by us",
+      "blurb": "Prepared here in the shop, ready for your oven.",
+      "image": "wellington",
+      "imageAlt": "Beef Wellington",
+      "items": [
+        { "id": "wellington", "name": "Beef Wellington", "detail": "Oven ready, with red wine sauce. Serves 4 or more.", "price": 17000 },
+        { "id": "wellington-extra", "name": "Wellington extra portion", "detail": "Add to a Wellington.", "price": 4250 },
+        { "id": "garlic-chicken", "name": "Cumbrian garlic butter chicken", "detail": "About 1.75kg.", "perKg": 1250, "tiers": [{ "id": "1.75kg", "label": "About 1.75kg", "price": 2188 }] },
+        { "id": "truffle-chicken", "name": "Black truffle and wild mushroom chicken", "detail": "About 1.75kg.", "perKg": 2250, "tiers": [{ "id": "1.75kg", "label": "About 1.75kg", "price": 3938 }] },
+        {
+          "id": "gammon", "name": "Berkshire gammon slipper", "detail": "Uncooked, 1.5–2kg.", "perKg": 1800,
+          "tiers": [{ "id": "1.5kg", "label": "About 1.5kg", "price": 2700 }, { "id": "2kg", "label": "About 2kg", "price": 3600 }]
+        },
+        {
+          "id": "gammon-cooked", "name": "Cooked Berkshire gammon slipper", "detail": "Cooked, 1.5–2kg.", "perKg": 3600,
+          "tiers": [{ "id": "1.5kg", "label": "About 1.5kg", "price": 5400 }, { "id": "2kg", "label": "About 2kg", "price": 7200 }]
+        },
+        { "id": "pork-belly", "name": "Rolled Berkshire pork belly", "detail": "With herb stuffing, about 1kg.", "perKg": 1800, "tiers": [{ "id": "1kg", "label": "About 1kg", "price": 1800 }] },
+        { "id": "pigs-in-blankets", "name": "Pigs in blankets", "detail": "Chipolatas, per 100g.", "price": 250, "confirm": true },
+        { "id": "stuffing", "name": "Chestnut, sage and golden raisin stuffing", "detail": "500g.", "price": 1000 },
+        { "id": "sausage-meat", "name": "Sausage meat", "detail": "500g.", "price": 750 },
+        { "id": "gravy", "name": "Found Hope gravy", "detail": "350ml.", "price": 800 },
+        { "id": "red-wine-sauce", "name": "Red wine beef sauce", "detail": "350ml.", "price": 1200 },
+        { "id": "chicken-stock", "name": "Chicken stock", "detail": "350ml.", "price": 600 },
+        { "id": "beef-stock", "name": "Beef stock", "detail": "350ml.", "price": 800 }
+      ]
+    },
+    {
+      "id": "vegan-puds",
+      "title": "Vegan and puddings",
+      "source": "Pies and desserts",
+      "blurb": "A proper vegan centrepiece, and puddings for four.",
+      "image": "kitchen",
+      "imageAlt": "Squash with pumpkin seeds",
+      "items": [
+        { "id": "vegan-pie", "name": "Vegan pie", "detail": "Delica pumpkin, hen of the woods, black truffle and spinach, with Marsala gravy.", "price": 2500 },
+        { "id": "pudding", "name": "McLaren's Christmas pudding", "detail": "Serves 4.", "price": 1750 },
+        { "id": "tarte-tatin", "name": "Braeburn apple tarte tatin", "detail": "Serves 4. With clotted cream and caramel sauce.", "price": 2500 }
+      ]
+    }
+  ],
+  "truffles": {
+    "title": "Truffle chocolates",
+    "text": "Handmade in our kitchen for Christmas. Four flavours this year.",
+    "flavours": ["Salted caramel"],
+    "flavourCount": 4,
+    "price": null,
+    "image": "truffles",
+    "imageAlt": "Our salted caramel truffles in a tin"
+  }
+}

@@ -3,23 +3,13 @@
 // from day one. Each one gets replaced by its real page as it's built.
 import Layout from '../layouts/Layout.astro';
 import ComingSoon from '../components/ComingSoon.astro';
-import { getChristmas, getSettings } from '../lib/content';
 
 export function getStaticPaths() {
-  const xmas = getChristmas();
-  const s = getSettings();
   return [
     { params: { page: 'our-story' }, props: { title: 'Our story' } },
     { params: { page: 'food-and-drink' }, props: { title: 'Food & Drink' } },
     { params: { page: 'whats-on' }, props: { title: "What's on", note: 'Nothing booked just yet. Follow us on Instagram to hear about our next event first.' } },
     { params: { page: 'suppliers' }, props: { title: 'Our suppliers' } },
-    {
-      params: { page: 'christmas' },
-      props: {
-        title: 'Christmas',
-        note: `Our Christmas order page is nearly ready. Order in the shop until ${xmas.inShopCutoffText}, or email ${s.ordersEmail}. Collection on ${xmas.collectionText}.`,
-      },
-    },
     { params: { page: 'journal' }, props: { title: 'Journal' } },
     { params: { page: 'visit' }, props: { title: 'Visit us' } },
     { params: { page: 'privacy' }, props: { title: 'Privacy and cookies' } },

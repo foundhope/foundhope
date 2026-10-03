@@ -9,7 +9,6 @@ const placeholderPages = [
   '/food-and-drink',
   '/whats-on',
   '/suppliers',
-  '/christmas',
   '/journal',
   '/visit',
   '/privacy',

@@ -9,12 +9,14 @@ import christmas from '../data/christmas.json';
 import suppliers from '../data/suppliers.json';
 import reviews from '../data/reviews.json';
 import home from '../data/home.json';
+import christmasMenu from '../data/christmas-menu.json';
 
 export const getSettings = () => settings;
 export const getHours = () => hours;
 export const getHome = () => home;
 export const getReviews = () => reviews;
 export const getSuppliers = () => suppliers;
+export const getChristmasMenu = () => christmasMenu;
 export const getHomeSuppliers = () => suppliers.filter((s) => s.onHome);
 
 // Images live in src/assets/images and are referred to by file name (no extension).
@@ -63,3 +65,6 @@ export function getChristmas(today = new Date()) {
     collectionText: `${collectionDays.slice(0, -1).join(', ')} or ${collectionDays.at(-1)} ${collectionMonth}, by ${c.collectionBy}`,
   };
 }
+
+export const money = (pence: number) =>
+  `£${(pence / 100).toFixed(2).replace(/\.00$/, '')}`;

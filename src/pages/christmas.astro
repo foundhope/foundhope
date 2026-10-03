@@ -1,0 +1,569 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { getChristmas, getChristmasMenu, getSettings, img, money, formatDate } from '../lib/content';
+
+const xmas = getChristmas();
+const menu = getChristmasMenu();
+const s = getSettings();
+
+type Tier = { id: string; label: string; price: number };
+type Item = { id: string; name: string; detail?: string; price?: number; perKg?: number; tiers?: Tier[] };
+
+const fromPrice = (it: Item) => (it.tiers ? Math.min(...it.tiers.map((t) => t.price)) : it.price ?? 0);
+const priceLabel = (it: Item) => {
+  if (!it.tiers) return money(it.price ?? 0);
+  if (it.tiers.length === 1) return `approx ${money(it.tiers[0].price)}`;
+  return `from approx ${money(fromPrice(it))}`;
+};
+
+// Everything the order form script needs, in one small blob.
+const formData = {
+  depositRate: xmas.depositRate,
+  ordersEmail: xmas.ordersEmail,
+  paymentsLive: xmas.paymentsLive,
+  items: menu.categories.flatMap((c) =>
+    (c.items as Item[]).map((it) => ({ id: it.id, name: it.name, price: it.price ?? null, tiers: it.tiers ?? null })),
+  ),
+};
+
+const collectionDays = xmas.collectionDates.map((d) => ({
+  value: d,
+  label: formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' }),
+}));
+
+const steps = [
+  { title: 'Pick your items', text: 'Choose from the list. Meat is sold by size.' },
+  { title: 'Choose a day', text: `Collect on ${xmas.collectionText}.` },
+  { title: `Pay a ${xmas.depositPercent}% deposit`, text: 'Online, to confirm your order.' },
+  { title: 'Collect and pay the rest', text: 'In the shop, based on the final weight.' },
+];
+---
+<Layout
+  title="Christmas orders"
+  description={`Order your Christmas turkey, rib of beef, Wellington and more from Found Hope in Hither Green. ${xmas.depositPercent}% deposit online, collect on ${xmas.collectionText}.`}
+>
+  {!xmas.live ? (
+    <section class="closed">
+      <div class="wrap closed__inner">
+        <span class="caps eyebrow">Christmas</span>
+        <h1 class="serif closed__title">Christmas orders are <em>closed</em></h1>
+        <p>Our Christmas list opens each autumn. Follow us on Instagram to hear first.</p>
+        <a href="/" class="btn">Back to the home page</a>
+      </div>
+    </section>
+  ) : (
+    <>
+      <!-- HERO -->
+      <section class="xhero">
+        <Image src={img(xmas.heroImage)} alt="" widths={[640, 1024]} sizes="100vw" loading="eager" class="xhero__img" />
+        <div class="xhero__shade" aria-hidden="true"></div>
+        <div class="wrap xhero__inner">
+          <span class="caps xhero__label">Christmas {xmas.year}</span>
+          <h1 class="display xhero__title">Christmas at Found Hope</h1>
+          <p class="xhero__text">
+            {xmas.intro}
+            {xmas.onlineOpen
+              ? ` Order online by ${xmas.onlineCutoffText}, or in the shop until ${xmas.inShopCutoffText}.`
+              : ` Online orders have closed. You can still order in the shop until ${xmas.inShopCutoffText}.`}
+            {` Collect on ${xmas.collectionText}.`}
+          </p>
+          <div class="xhero__actions">
+            {xmas.onlineOpen && <a href="#the-list" class="btn btn--accent">Start your order</a>}
+            <span class="caps xhero__tag">{xmas.depositPercent}% deposit · Full refund if you cancel by {xmas.refundCutoffText}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="steps" aria-labelledby="steps-title">
+        <div class="wrap">
+          <h2 id="steps-title" class="visually-hidden">How it works</h2>
+          <ol class="steps__list">
+            {steps.map((st, i) => (
+              <li>
+                <span class="mono steps__n">{String(i + 1).padStart(2, '0')}</span>
+                <span class="caps steps__title">{st.title}</span>
+                <span class="steps__text">{st.text}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <form id="xmas-form" class="order" novalidate>
+        <div class="wrap order__grid">
+          <!-- THE LIST -->
+          <section class="list" id="the-list" aria-labelledby="list-title">
+            <div class="list__head">
+              <h2 id="list-title" class="display list__title">The Christmas list</h2>
+              <p class="list__note">Meat is priced by weight, so prices are approximate until we weigh your order. We'll confirm the final price before you collect.</p>
+            </div>
+
+            {menu.categories.map((cat, ci) => (
+              <details class="cat" open={ci === 0} id={`cat-${cat.id}`}>
+                <summary class="cat__summary">
+                  <span class="cat__name">
+                    <span class="display cat__title">{cat.title}</span>
+                    <span class="caps cat__source">{cat.source}</span>
+                  </span>
+                  <span class="cat__count" data-cat-count={cat.id} aria-live="polite"></span>
+                  <svg class="cat__chev" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+                </summary>
+                <div class="cat__body">
+                  <div class="cat__intro">
+                    <Image src={img(cat.image)} alt={cat.imageAlt} widths={[320, 640]} sizes="(min-width: 900px) 220px, 100vw" class="cat__img" />
+                    <p>{cat.blurb}</p>
+                  </div>
+                  <ul class="items">
+                    {(cat.items as Item[]).map((it) => (
+                      <li class="item" data-item={it.id} data-cat={cat.id}>
+                        <div class="item__text">
+                          <span class="item__name">{it.name}</span>
+                          {it.detail && <span class="item__detail">{it.detail}{it.perKg ? ` ${money(it.perKg)}/kg.` : ''}</span>}
+                        </div>
+                        <span class="display item__price">{priceLabel(it)}</span>
+                        <div class="item__controls">
+                          {it.tiers && it.tiers.length > 1 && (
+                            <label class="item__size">
+                              <span class="visually-hidden">Size for {it.name}</span>
+                              <select data-tier={it.id}>
+                                <option value="">Choose a size</option>
+                                {it.tiers.map((t) => <option value={t.id}>{t.label} · approx {money(t.price)}</option>)}
+                              </select>
+                            </label>
+                          )}
+                          <div class="qty" role="group" aria-label={`How many ${it.name}`}>
+                            <button type="button" class="qty__btn" data-step="-1" data-for={it.id} aria-label={`One less ${it.name}`}>−</button>
+                            <input type="number" inputmode="numeric" min="0" max="20" value="0" class="qty__input" data-qty={it.id} aria-label={`Quantity of ${it.name}`} />
+                            <button type="button" class="qty__btn" data-step="1" data-for={it.id} aria-label={`One more ${it.name}`}>+</button>
+                          </div>
+                        </div>
+                        <p class="item__error" data-error={it.id} hidden>Choose a size first.</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            ))}
+
+            <!-- TRUFFLES -->
+            <div class="truffles">
+              <Image src={img(menu.truffles.image)} alt={menu.truffles.imageAlt} widths={[400, 800]} sizes="(min-width: 900px) 320px, 100vw" class="truffles__img" />
+              <div class="truffles__body">
+                <span class="caps truffles__label">Made by us</span>
+                <h3 class="display truffles__title">{menu.truffles.title}</h3>
+                <p>{menu.truffles.text}</p>
+                <ul class="truffles__flavours">
+                  {menu.truffles.flavours.map((f) => <li class="caps">{f}</li>)}
+                  {menu.truffles.flavourCount > menu.truffles.flavours.length && (
+                    <li class="caps truffles__more">+ {menu.truffles.flavourCount - menu.truffles.flavours.length} more coming</li>
+                  )}
+                </ul>
+                <p class="truffles__note">
+                  {menu.truffles.price ? money(menu.truffles.price) : 'Price coming soon.'} Ask for a box in the shop, or add a note to your order.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- YOUR ORDER -->
+          <aside class="summary" id="your-order" aria-labelledby="summary-title">
+            <div class="summary__card">
+              <h2 id="summary-title" class="display summary__title">Your order</h2>
+              <p class="summary__empty" data-empty>Nothing added yet. Pick from the list.</p>
+              <ul class="summary__lines" data-lines></ul>
+              <dl class="summary__totals" data-totals hidden>
+                <div><dt>Approx total</dt><dd data-total>£0</dd></div>
+                <div class="summary__deposit"><dt>Deposit today ({xmas.depositPercent}%)</dt><dd data-deposit>£0</dd></div>
+                <div><dt>Approx balance on collection</dt><dd data-balance>£0</dd></div>
+              </dl>
+
+              {xmas.onlineOpen ? (
+                <div class="details">
+                  <h3 class="caps details__title">Your details</h3>
+                  <label class="field">
+                    <span class="caps field__label">Name</span>
+                    <input name="name" autocomplete="name" required />
+                  </label>
+                  <label class="field">
+                    <span class="caps field__label">Email</span>
+                    <input name="email" type="email" autocomplete="email" required />
+                  </label>
+                  <label class="field">
+                    <span class="caps field__label">Phone</span>
+                    <input name="phone" type="tel" autocomplete="tel" required />
+                  </label>
+                  <fieldset class="field days">
+                    <legend class="caps field__label">Collection day, by {xmas.collectionBy}</legend>
+                    {collectionDays.map((d) => (
+                      <label class="day">
+                        <input type="radio" name="collection" value={d.value} required />
+                        <span>{d.label}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                  <label class="field">
+                    <span class="caps field__label">Anything else? <span class="field__optional">(optional)</span></span>
+                    <textarea name="notes" rows="3" placeholder="Allergies, special requests, truffle chocolates"></textarea>
+                  </label>
+                  <label class="agree">
+                    <input type="checkbox" name="agree" required />
+                    <span>I've read <a href="#deposit-terms">how deposits work</a>, including the {xmas.refundCutoffText} refund cut-off.</span>
+                  </label>
+                  <p class="form-error" data-form-error role="alert" hidden></p>
+                  <button type="submit" class="btn btn--accent submit" data-submit>
+                    {xmas.paymentsLive ? 'Send order and pay deposit' : 'Send my order'}
+                  </button>
+                  {!xmas.paymentsLive && (
+                    <p class="submit__note">Online deposits are nearly ready. For now this opens an email to {xmas.ordersEmail} with your order filled in, and we'll call you to take the deposit.</p>
+                  )}
+                </div>
+              ) : (
+                <p class="summary__closed">Online orders closed on {xmas.onlineCutoffText}. Call us on <a href={`tel:${s.phoneIntl}`}>{s.phone}</a> or pop in by {xmas.inShopCutoffText}.</p>
+              )}
+            </div>
+          </aside>
+        </div>
+
+        <!-- Phone: running deposit, always in view -->
+        <div class="bar" data-bar hidden>
+          <span><span class="caps bar__label">Deposit</span> <strong data-bar-deposit>£0</strong> <span class="bar__count" data-bar-count></span></span>
+          <a href="#your-order" class="btn btn--accent bar__btn">Review order</a>
+        </div>
+      </form>
+
+      <!-- DEPOSIT TERMS -->
+      <section class="terms" id="deposit-terms" aria-labelledby="terms-title">
+        <div class="wrap terms__grid">
+          <h2 id="terms-title" class="serif terms__title">How deposits <em>work</em></h2>
+          <ul class="terms__list">
+            <li>Order online by {xmas.onlineCutoffText}. After that, you can still order in the shop until {xmas.inShopCutoffText}.</li>
+            <li>Pay a {xmas.depositPercent}% deposit online to confirm your order. Your order isn't confirmed until the deposit is paid.</li>
+            <li>Meat and poultry are sold by size. Prices shown are approximate. We'll confirm the exact weight and price with you before collection.</li>
+            <li>Collect on {xmas.collectionText}. Pick your day when you order.</li>
+            <li>Pay the balance in the shop when you collect, based on the final weight.</li>
+            <li>Cancel by {xmas.refundCutoffText} for a full refund of your deposit. Just email <a href={`mailto:${xmas.ordersEmail}`}>{xmas.ordersEmail}</a>.</li>
+            <li>Refunds go back to the card you paid with, usually within 5 to 10 working days.</li>
+            <li>Please collect on your chosen day. If you can't make it, let us know as soon as possible.</li>
+          </ul>
+        </div>
+      </section>
+
+      <script type="application/json" id="xmas-data" set:html={JSON.stringify(formData)} />
+    </>
+  )}
+</Layout>
+
+<script>
+  type Tier = { id: string; label: string; price: number };
+  type Item = { id: string; name: string; price: number | null; tiers: Tier[] | null };
+  type Data = { depositRate: number; ordersEmail: string; paymentsLive: boolean; items: Item[] };
+
+  const dataEl = document.getElementById('xmas-data');
+  const form = document.getElementById('xmas-form') as HTMLFormElement | null;
+
+  if (dataEl && form) {
+    const data: Data = JSON.parse(dataEl.textContent || '{}');
+    const items = new Map(data.items.map((i) => [i.id, i]));
+    const money = (p: number) => `£${(p / 100).toFixed(2).replace(/\.00$/, '')}`;
+    const $ = <T extends Element>(sel: string) => form.querySelector<T>(sel);
+    const $$ = <T extends Element>(sel: string) => Array.from(form.querySelectorAll<T>(sel));
+
+    const qtyInput = (id: string) => $<HTMLInputElement>(`[data-qty="${id}"]`)!;
+    const tierSelect = (id: string) => $<HTMLSelectElement>(`[data-tier="${id}"]`);
+
+    // Work out each line from what's picked on the page.
+    function lines() {
+      const out: { item: Item; tier: Tier | null; qty: number; unit: number }[] = [];
+      for (const item of data.items) {
+        const qty = Math.max(0, Math.min(20, parseInt(qtyInput(item.id).value, 10) || 0));
+        if (!qty) continue;
+        let tier: Tier | null = null;
+        if (item.tiers) {
+          tier = item.tiers.length === 1 ? item.tiers[0] : item.tiers.find((t) => t.id === tierSelect(item.id)?.value) ?? null;
+          if (!tier) continue;
+        }
+        out.push({ item, tier, qty, unit: tier ? tier.price : item.price ?? 0 });
+      }
+      return out;
+    }
+
+    function render() {
+      const ls = lines();
+      const total = ls.reduce((n, l) => n + l.unit * l.qty, 0);
+      const deposit = Math.round(total * data.depositRate);
+      const list = $('[data-lines]')!;
+      list.innerHTML = '';
+      for (const l of ls) {
+        const li = document.createElement('li');
+        const name = document.createElement('span');
+        name.textContent = `${l.qty} × ${l.item.name}${l.tier && l.item.tiers!.length > 1 ? `, ${l.tier.label}` : ''}`;
+        const price = document.createElement('span');
+        price.textContent = `${l.tier ? 'approx ' : ''}${money(l.unit * l.qty)}`;
+        li.append(name, price);
+        list.append(li);
+      }
+      const has = ls.length > 0;
+      $('[data-empty]')!.toggleAttribute('hidden', has);
+      $('[data-totals]')!.toggleAttribute('hidden', !has);
+      $('[data-total]')!.textContent = money(total);
+      $('[data-deposit]')!.textContent = money(deposit);
+      $('[data-balance]')!.textContent = money(total - deposit);
+
+      const count = ls.reduce((n, l) => n + l.qty, 0);
+      const bar = $('[data-bar]')!;
+      bar.toggleAttribute('hidden', !has);
+      $('[data-bar-deposit]')!.textContent = money(deposit);
+      $('[data-bar-count]')!.textContent = `· ${count} item${count === 1 ? '' : 's'}`;
+
+      // Little "2 added" counter on each category heading
+      const perCat = new Map<string, number>();
+      for (const l of ls) {
+        const cat = $<HTMLElement>(`[data-item="${l.item.id}"]`)!.dataset.cat!;
+        perCat.set(cat, (perCat.get(cat) || 0) + l.qty);
+      }
+      for (const el of $$<HTMLElement>('[data-cat-count]')) {
+        const n = perCat.get(el.dataset.catCount!) || 0;
+        el.textContent = n ? `${n} added` : '';
+      }
+      return { ls, total, deposit };
+    }
+
+    function setQty(id: string, value: number) {
+      const item = items.get(id)!;
+      const err = $<HTMLElement>(`[data-error="${id}"]`)!;
+      if (value > 0 && item.tiers && item.tiers.length > 1 && !tierSelect(id)!.value) {
+        err.hidden = false;
+        tierSelect(id)!.focus();
+        return;
+      }
+      err.hidden = true;
+      qtyInput(id).value = String(Math.max(0, Math.min(20, value)));
+      render();
+    }
+
+    form.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-step]');
+      if (!btn) return;
+      const id = btn.dataset.for!;
+      setQty(id, (parseInt(qtyInput(id).value, 10) || 0) + Number(btn.dataset.step));
+    });
+
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.matches('[data-qty]')) setQty((t as HTMLInputElement).dataset.qty!, parseInt((t as HTMLInputElement).value, 10) || 0);
+      if (t.matches('[data-tier]')) {
+        const id = (t as HTMLSelectElement).dataset.tier!;
+        $<HTMLElement>(`[data-error="${id}"]`)!.hidden = true;
+        // Picking a size adds one, so people don't have to press + as well.
+        if ((t as HTMLSelectElement).value && !(parseInt(qtyInput(id).value, 10) > 0)) qtyInput(id).value = '1';
+        if (!(t as HTMLSelectElement).value) qtyInput(id).value = '0';
+        render();
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const { ls, total, deposit } = render();
+      const err = $<HTMLElement>('[data-form-error]')!;
+      const fd = new FormData(form);
+      const missing: string[] = [];
+      if (!ls.length) missing.push('something from the list');
+      if (!String(fd.get('name') || '').trim()) missing.push('your name');
+      const email = String(fd.get('email') || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) missing.push('a valid email');
+      if (!String(fd.get('phone') || '').trim()) missing.push('a phone number');
+      if (!fd.get('collection')) missing.push('a collection day');
+      if (!fd.get('agree')) missing.push('a tick to say you have read how deposits work');
+      if (missing.length) {
+        err.textContent = `Still needed: ${missing.join(', ')}.`;
+        err.hidden = false;
+        return;
+      }
+      err.hidden = true;
+
+      const day = form.querySelector<HTMLInputElement>('input[name="collection"]:checked')!.nextElementSibling!.textContent;
+      const body = [
+        'Christmas order',
+        '',
+        ...ls.map((l) => `${l.qty} x ${l.item.name}${l.tier && l.item.tiers!.length > 1 ? ` (${l.tier.label})` : ''}: ${l.tier ? 'approx ' : ''}${money(l.unit * l.qty)}`),
+        '',
+        `Approx total: ${money(total)}`,
+        `Deposit (${Math.round(data.depositRate * 100)}%): ${money(deposit)}`,
+        '',
+        `Name: ${fd.get('name')}`,
+        `Email: ${email}`,
+        `Phone: ${fd.get('phone')}`,
+        `Collection: ${day}`,
+        `Notes: ${String(fd.get('notes') || '').trim() || 'None'}`,
+      ].join('\n');
+
+      if (!data.paymentsLive) {
+        const subject = `Christmas order: ${fd.get('name')}, ${day}`;
+        window.location.href = `mailto:${data.ordersEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      }
+      // When online deposits go live, this sends the order to the shop's
+      // order handler and moves on to the Stripe payment page.
+    });
+
+    render();
+  }
+</script>
+
+<style>
+  /* Closed out of season */
+  .closed { background: var(--stone); padding-block: clamp(80px, 12vw, 140px); }
+  .closed__inner { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+  .closed__title { font-size: clamp(46px, 6vw, 72px); }
+
+  /* Hero */
+  .xhero { position: relative; overflow: hidden; background: var(--ink); color: #fff; }
+  .xhero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .xhero__shade { position: absolute; inset: 0; background: rgba(12, 12, 12, 0.62); }
+  .xhero__inner { position: relative; display: flex; flex-direction: column; gap: 20px; padding-block: clamp(64px, 9vw, 110px); }
+  .xhero__label { font-size: 14px; color: #a9c1ff; }
+  .xhero__title { font-size: clamp(42px, 6vw, 68px); line-height: 0.98; text-transform: uppercase; max-width: 12em; }
+  .xhero__text { font-size: 18px; line-height: 1.55; color: var(--stone-2); max-width: 38em; }
+  .xhero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+  .xhero__tag { font-size: 12px; padding: 10px 14px; border: 1.5px solid #fff; }
+
+  /* Steps */
+  .steps { background: var(--stone-2); padding-block: 48px; }
+  .steps__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .steps__list li { display: flex; flex-direction: column; gap: 8px; border-top: 2px solid var(--ink); padding-top: 16px; }
+  .steps__n { font-size: 13px; color: var(--accent-text); }
+  .steps__title { font-size: 14px; }
+  .steps__text { font-size: 15px; line-height: 1.5; color: #3a3935; }
+
+  /* Order layout */
+  .order { background: var(--stone); padding-block: var(--section); }
+  .order__grid { display: grid; gap: 40px; align-items: start; }
+  @media (min-width: 1000px) {
+    .order__grid { grid-template-columns: minmax(0, 1fr) 380px; gap: 56px; }
+    .summary { position: sticky; top: 24px; }
+  }
+
+  /* The list */
+  .list__head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .list__title { font-size: clamp(30px, 3.4vw, 44px); line-height: 1; text-transform: uppercase; }
+  .list__note { font-size: 15px; color: var(--muted); max-width: 40em; }
+
+  .cat { border-top: 2px solid var(--ink); }
+  .cat:last-of-type { border-bottom: 2px solid var(--ink); }
+  .cat__summary {
+    list-style: none; cursor: pointer; min-height: 80px; padding: 16px 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .cat__summary::-webkit-details-marker { display: none; }
+  .cat__name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+  .cat__title { font-size: clamp(20px, 2.2vw, 26px); text-transform: uppercase; }
+  .cat__source { font-size: 11px; color: var(--muted); }
+  .cat__count { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent-text); white-space: nowrap; }
+  .cat__chev { flex-shrink: 0; transition: transform 0.2s; }
+  .cat[open] .cat__chev { transform: rotate(180deg); }
+  .cat__body { padding-bottom: 32px; display: grid; gap: 24px; }
+  .cat__intro { display: flex; gap: 16px; align-items: center; color: #3a3935; font-size: 15px; }
+  .cat__img { width: 96px; height: 96px; object-fit: cover; flex-shrink: 0; }
+  @media (min-width: 900px) {
+    .cat__body { grid-template-columns: 200px minmax(0, 1fr); gap: 32px; }
+    .cat__intro { flex-direction: column; align-items: flex-start; }
+    .cat__img { width: 200px; height: 200px; }
+  }
+
+  .items { list-style: none; margin: 0; padding: 0; }
+  .item {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center;
+    padding: 16px 0; border-bottom: 1px solid var(--rule);
+  }
+  .item:first-child { padding-top: 0; }
+  .item__text { display: flex; flex-direction: column; gap: 2px; }
+  .item__name { font-size: 17px; font-weight: 700; }
+  .item__detail { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .item__price { font-size: 16px; font-weight: 500; text-align: right; white-space: nowrap; }
+  .item__controls { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .item__size select {
+    height: 44px; padding: 0 12px; border: 1.5px solid var(--ink); background: #fff;
+    font: inherit; font-size: 15px; color: var(--ink); max-width: 100%;
+  }
+  .item__error { grid-column: 1 / -1; margin: 0; font-size: 14px; color: #b42318; }
+
+  .qty { display: inline-flex; align-items: stretch; border: 1.5px solid var(--ink); background: #fff; height: 44px; }
+  .qty__btn { width: 44px; border: 0; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink); }
+  .qty__btn:hover { background: var(--stone-2); }
+  .qty__input {
+    width: 44px; border: 0; border-inline: 1.5px solid var(--ink); text-align: center;
+    font: inherit; font-size: 16px; font-weight: 700; -moz-appearance: textfield; appearance: textfield;
+  }
+  .qty__input::-webkit-outer-spin-button, .qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  /* Truffles */
+  .truffles { margin-top: 40px; background: var(--ink); color: #fff; display: grid; }
+  .truffles__img { width: 100%; height: 260px; object-fit: cover; }
+  .truffles__body { padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .truffles__label { font-size: 13px; color: #a9c1ff; }
+  .truffles__title { font-size: 30px; line-height: 1; text-transform: uppercase; }
+  .truffles__flavours { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .truffles__flavours li { font-size: 11px; padding: 8px 12px; border: 1.5px solid #fff; }
+  .truffles__more { opacity: 0.6; border-style: dashed !important; }
+  .truffles__note { font-size: 15px; color: var(--stone-2); }
+  @media (min-width: 700px) {
+    .truffles { grid-template-columns: 280px minmax(0, 1fr); }
+    .truffles__img { height: 100%; min-height: 280px; }
+  }
+
+  /* Summary */
+  .summary__card { background: #fff; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+  .summary__title { font-size: 26px; text-transform: uppercase; line-height: 1; }
+  .summary__empty { color: var(--muted); font-size: 15px; }
+  .summary__lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  .summary__lines :global(li) { display: flex; justify-content: space-between; gap: 12px; }
+  .summary__lines :global(li span:last-child) { white-space: nowrap; color: var(--muted); }
+  .summary__totals { margin: 0; border-top: 1.5px solid var(--ink); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+  .summary__totals div { display: flex; justify-content: space-between; gap: 12px; }
+  .summary__totals dt, .summary__totals dd { margin: 0; }
+  .summary__deposit { font-size: 19px; font-weight: 700; }
+  .summary__closed { font-size: 15px; }
+
+  .details { display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--rule); padding-top: 18px; }
+  .details__title { font-size: 13px; }
+  .field { display: flex; flex-direction: column; gap: 6px; border: 0; margin: 0; padding: 0; }
+  .field__label { font-size: 11px; }
+  .field__optional { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); }
+  .field input, .field textarea {
+    font: inherit; font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink);
+  }
+  .field input { height: 48px; }
+  .field textarea { resize: vertical; }
+  .days { gap: 8px; }
+  .days legend { margin-bottom: 8px; }
+  .day { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--rule); cursor: pointer; font-size: 15px; }
+  .day:has(input:checked) { border-color: var(--ink); background: var(--stone); font-weight: 700; }
+  .day input, .agree input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+  .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; }
+  .agree input { margin-top: 2px; }
+  .form-error { margin: 0; font-size: 14px; color: #b42318; }
+  .submit { width: 100%; border: 0; cursor: pointer; font-family: inherit; }
+  .submit__note { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* Phone bar */
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px var(--gutter); padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: #fff; border-top: 1px solid var(--rule); box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.06);
+  }
+  .bar[hidden] { display: none; }
+  .bar__label { font-size: 11px; }
+  .bar__count { font-size: 13px; color: var(--muted); }
+  .bar__btn { min-height: 44px; padding: 0 18px; font-size: 12px; }
+  @media (min-width: 1000px) { .bar { display: none !important; } }
+  @media (max-width: 999px) { :global(body:has(.bar:not([hidden]))) { padding-bottom: 72px; } }
+
+  /* Terms */
+  .terms { background: #fff; padding-block: var(--section); }
+  .terms__grid { display: grid; gap: 28px; }
+  .terms__title { font-size: clamp(38px, 4.4vw, 52px); }
+  .terms__list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.55; color: var(--ink-soft); max-width: 44em; }
+  @media (min-width: 900px) { .terms__grid { grid-template-columns: 340px minmax(0, 1fr); gap: 56px; } }
+</style>

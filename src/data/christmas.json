@@ -6,7 +6,13 @@
   "onlineOrderCutoff": "2026-12-14",
   "inShopOrderCutoff": "2026-12-17",
   "refundCutoff": "2026-12-16",
-  "collectionDates": ["2026-12-22", "2026-12-23", "2026-12-24"],
+  "collectionDates": [
+    "2026-12-22",
+    "2026-12-23",
+    "2026-12-24"
+  ],
   "collectionBy": "4:30pm",
-  "ordersEmail": "orders@foundhope.store"
+  "ordersEmail": "orders@foundhope.store",
+  "paymentsLive": false,
+  "heroImage": "turkey"
 }
