@@ -11,7 +11,6 @@ export default defineConfig({
   title: 'Found Hope',
   projectId,
   dataset,
-  basePath: '/studio',
   plugins: [structureTool({ structure })],
   schema: {
     types: schemaTypes,
