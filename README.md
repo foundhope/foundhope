@@ -2,7 +2,7 @@
 
 The website for [Found Hope](https://foundhope.store), a coffee, food and bottle shop in Hither Green.
 
-Built with [Astro](https://astro.build) and hosted on Cloudflare Pages. Content will be edited in Sanity; until that's set up, it lives in the JSON files in `src/data`.
+Built with [Astro](https://astro.build) and hosted on Cloudflare (Workers, serving the static site). Content will be edited in Sanity; until that's set up, it lives in the JSON files in `src/data`.
 
 ## Where things are
 
@@ -14,7 +14,8 @@ Built with [Astro](https://astro.build) and hosted on Cloudflare Pages. Content 
 | `src/pages/[page].astro` | "Coming soon" placeholders for pages not built yet, so every menu link and redirect works |
 | `src/lib/content.ts` | The one place pages read content from. Swaps to Sanity later |
 | `public/_redirects` | Old WordPress addresses to new pages. Rebuild with `python3 scripts/build-redirects.py` |
-| `public/_headers` | Keeps `*.pages.dev` previews out of Google |
+| `public/_headers` | Keeps preview addresses out of Google |
+| `wrangler.jsonc` | Tells Cloudflare to serve the built site from `dist/` |
 
 ## Run it locally
 
@@ -24,12 +25,13 @@ npm run dev      # http://localhost:4321
 npm run build    # builds to dist/
 ```
 
-## Cloudflare Pages settings
+## Cloudflare settings
 
-- Framework preset: **Astro**
+The site runs as a Cloudflare Worker called `foundhope`, connected to this repo. Every push to `main` builds and deploys.
+
 - Build command: `npm run build`
-- Build output directory: `dist`
-- Environment variable: `NODE_VERSION` = `22`
+- Deploy command: `npx wrangler deploy` (reads `wrangler.jsonc`)
+- Preview address: https://foundhope.orders-dc8.workers.dev
 
 ## Christmas
 

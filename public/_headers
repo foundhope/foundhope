@@ -1,4 +1,7 @@
-# Keep preview copies of the site (*.pages.dev) out of Google.
+# Keep preview copies of the site out of Google.
+https://foundhope.orders-dc8.workers.dev/*
+  X-Robots-Tag: noindex
+
 https://:project.pages.dev/*
   X-Robots-Tag: noindex
 
