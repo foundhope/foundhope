@@ -10,9 +10,9 @@ interface Props {
   noindex?: boolean;
 }
 
-const s = getSettings();
-const hours = getHours();
-const xmas = getChristmas();
+const s = await getSettings();
+const hours = await getHours();
+const xmas = await getChristmas();
 const { title, description = s.description, noindex = false } = Astro.props;
 const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food and bottle shop in Hither Green`;
 const canonical = new URL(Astro.url.pathname, Astro.site);

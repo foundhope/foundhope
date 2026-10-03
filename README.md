@@ -2,17 +2,20 @@
 
 The website for [Found Hope](https://foundhope.store), a coffee, food and bottle shop in Hither Green.
 
-Built with [Astro](https://astro.build) and hosted on Cloudflare (Workers, serving the static site). Content will be edited in Sanity; until that's set up, it lives in the JSON files in `src/data`.
+Built with [Astro](https://astro.build) and hosted on Cloudflare (Workers, serving the static site). Editable content lives in [Sanity](https://www.sanity.io) (project `2opy1om7`, dataset `production`) and is read at build time. The editor (Sanity Studio) is part of this repo and is served at **/studio**.
 
 ## Where things are
 
 | Path | What it is |
 |---|---|
-| `src/data/` | Site content: contact details, hours, Christmas dates, home page text, suppliers, reviews. One file per thing the team will edit in Sanity |
+| `studio/` | The editor: what Nick and Johan can change, and how the menu is laid out. Config in `sanity.config.ts` |
+| `src/data/` | Copy not yet in Sanity: home page text, Our Story, site name and description, reviews. `christmas.json` holds `paymentsLive` |
 | `src/assets/images/` | Photos. Referred to by file name in the data files. Resized and converted to WebP at build time |
 | `src/pages/index.astro` | Home page (Concept C, v2) |
 | `src/pages/[page].astro` | "Coming soon" placeholders for pages not built yet, so every menu link and redirect works |
-| `src/lib/content.ts` | The one place pages read content from. Swaps to Sanity later |
+| `src/lib/content.ts` | The one place pages read content from. One Sanity query per build |
+| `src/components/Photo.astro` | Shows either a local photo or one uploaded in Sanity |
+| `worker/index.ts` | Tiny script: makes /studio links work, and triggers the nightly rebuild |
 | `public/_redirects` | Old WordPress addresses to new pages. Rebuild with `python3 scripts/build-redirects.py` |
 | `public/_headers` | Keeps preview addresses out of Google |
 | `wrangler.jsonc` | Tells Cloudflare to serve the built site from `dist/` |
@@ -29,14 +32,28 @@ npm run build    # builds to dist/
 
 The site runs as a Cloudflare Worker called `foundhope`, connected to this repo. Every push to `main` builds and deploys.
 
-- Build command: `npm run build`
+- Build command: `npm run build` (builds the site, then the Studio into `dist/studio`)
 - Deploy command: `npx wrangler deploy` (reads `wrangler.jsonc`)
 - Preview address: https://foundhope.orders-dc8.workers.dev
 
+## Editing content
+
+Go to **/studio** on the site (or `npm run studio` locally), sign in, edit, press **Publish**.
+
+| In the Studio | What it changes |
+|---|---|
+| Notice banner and contact | The blue strip on every page, phone, email, address, social links |
+| Opening hours | Normal week, plus special days (shown for 6 weeks before, gone after the day) |
+| Events | What's On page and the home page band. Past events drop off by themselves |
+| Christmas > Dates, deposit and truffles | Open or closed, cut-off dates, collection days, deposit %, main photo, truffles |
+| Christmas > The Christmas list | Sections, items, prices and sizes. "Available" off shows Sold out |
+| Suppliers | Supplier cards on the home page and their pages |
+
+**Publishing rebuilds the site** through a Sanity webhook that calls the Cloudflare deploy hook. Changes are live about a minute later. The site also rebuilds itself every night (`triggers` in `wrangler.jsonc`, using the `DEPLOY_HOOK_URL` secret).
+
+If Sanity can't be reached during a build, the build fails on purpose and the last good version stays live.
+
 ## Christmas
 
-Dates live in `src/data/christmas.json`. The home page Christmas band and the top banner show while `on` is `true`, and hide themselves after the last collection day (on the next build, so this relies on the planned nightly rebuild).
+All dates, the deposit and the list are edited in the Studio. `paymentsLive` in `src/data/christmas.json` switches the order form from email to Stripe once deposits are connected.
 
-## Events
-
-Events live in `src/data/events.json`. Each needs a `title`, `date` (YYYY-MM-DD), `start` time, `description` and `image`. `price` and `bookingUrl` are optional: with no booking link, the card says "Just turn up". Past events drop off by themselves, and the What's On page shows "Nothing booked just yet" when there's nothing coming up. The home page only shows a What's On band when there's something booked.

@@ -1,15 +1,15 @@
 ---
-import { Image } from 'astro:assets';
-import { img, eventEnds, eventWhen, type ShopEvent } from '../lib/content';
+import Photo from './Photo.astro';
+import { eventEnds, eventWhen, type ShopEvent } from '../lib/content';
 interface Props { event: ShopEvent; headingLevel?: 'h2' | 'h3' }
 const { event: e, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
-const [y, m, d] = e.date.split('-');
+const d = e.date.split('-')[2];
 const month = new Date(`${e.date}T12:00:00Z`).toLocaleDateString('en-GB', { month: 'short', timeZone: 'Europe/London' });
 ---
 <article class="event" data-event-ends={eventEnds(e)}>
   <div class="event__media">
-    {e.image && <Image src={img(e.image)} alt={e.imageAlt} widths={[400, 720, 1000]} sizes="(min-width: 900px) 420px, 100vw" class="event__img" />}
+    {e.image && <Photo src={e.image} widths={[400, 720, 1000]} sizes="(min-width: 900px) 420px, 100vw" class="event__img" />}
     <span class="event__date" aria-hidden="true">
       <span class="display event__day">{Number(d)}</span>
       <span class="caps event__month">{month}</span>

@@ -2,7 +2,7 @@
 import { getSettings } from '../lib/content';
 interface Props { title: string; note?: string }
 const { title, note } = Astro.props;
-const s = getSettings();
+const s = await getSettings();
 ---
 <section class="soon">
   <div class="wrap soon__inner">

@@ -70,7 +70,9 @@ jingle-bells-in-vegan-wonderland%f0%9f%8e%84%f0%9f%8e%85%f0%9f%8f%bc
 
 lines = [
     '# Found Hope: old WordPress addresses -> new site. Built by scripts/build-redirects.py',
-    '# Specific rules first, catch-alls last. Cloudflare Pages uses the first match.',
+    '# Specific rules first, catch-alls last. Cloudflare uses the first match.',
+    '# Cloudflare limits: 2000 exact rules, 100 pattern rules (with *). Every rule after',
+    '# the first pattern rule counts as a pattern rule, so keep all * rules at the end.',
     '',
 ]
 count = 0

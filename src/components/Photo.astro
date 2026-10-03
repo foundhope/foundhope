@@ -1,0 +1,56 @@
+---
+// One photo component for both kinds of image:
+// - a local photo in src/assets/images, by file name (e.g. "shopfront-sketch")
+// - a photo uploaded in Sanity, resized by Sanity's image service
+import { Image } from 'astro:assets';
+import { createImageUrlBuilder } from '@sanity/image-url';
+import { img, sanity, type SanityImage } from '../lib/content';
+
+interface Props {
+  src: string | SanityImage | undefined;
+  alt?: string;
+  widths?: number[];
+  sizes?: string;
+  class?: string;
+  loading?: 'eager' | 'lazy';
+  fetchpriority?: 'high' | 'low' | 'auto';
+}
+
+const { src, alt, widths = [480, 800, 1200], sizes = '100vw', class: cls, loading = 'lazy', fetchpriority } = Astro.props;
+const builder = createImageUrlBuilder(sanity);
+
+let sanityImg: { src: string; srcset: string; width?: number; height?: number; alt: string; lqip?: string } | null = null;
+if (src && typeof src === 'object' && src.asset?._id) {
+  const dims = src.asset.metadata?.dimensions;
+  const max = dims?.width ?? Math.max(...widths);
+  const ws = widths.filter((w) => w <= max);
+  if (!ws.length) ws.push(max);
+  const url = (w: number) => builder.image(src).width(w).auto('format').quality(80).url();
+  sanityImg = {
+    src: url(ws[Math.min(1, ws.length - 1)]),
+    srcset: ws.map((w) => `${url(w)} ${w}w`).join(', '),
+    width: dims?.width,
+    height: dims?.height,
+    alt: alt ?? src.alt ?? '',
+    lqip: src.asset.metadata?.lqip,
+  };
+}
+---
+{typeof src === 'string' && (
+  <Image src={img(src)} alt={alt ?? ''} widths={widths} sizes={sizes} class={cls} loading={loading} fetchpriority={fetchpriority} />
+)}
+{sanityImg && (
+  <img
+    src={sanityImg.src}
+    srcset={sanityImg.srcset}
+    sizes={sizes}
+    width={sanityImg.width}
+    height={sanityImg.height}
+    alt={sanityImg.alt}
+    class={cls}
+    loading={loading}
+    fetchpriority={fetchpriority}
+    decoding="async"
+    style={sanityImg.lqip ? `background: url(${sanityImg.lqip}) center / cover no-repeat` : undefined}
+  />
+)}

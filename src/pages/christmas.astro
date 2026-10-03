@@ -1,20 +1,20 @@
 ---
-import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
-import { getChristmas, getChristmasMenu, getSettings, img, money, formatDate } from '../lib/content';
+import Photo from '../components/Photo.astro';
+import { getChristmas, getChristmasMenu, getSettings, money, formatDate } from '../lib/content';
 
-const xmas = getChristmas();
-const menu = getChristmasMenu();
-const s = getSettings();
+const xmas = await getChristmas();
+const categories = xmas.live ? await getChristmasMenu() : [];
+const s = await getSettings();
+const truffles = xmas.truffles;
 
-type Tier = { id: string; label: string; price: number };
-type Item = { id: string; name: string; detail?: string; price?: number; perKg?: number; tiers?: Tier[] };
+type Item = Awaited<ReturnType<typeof getChristmasMenu>>[number]['items'][number];
 
-const fromPrice = (it: Item) => (it.tiers ? Math.min(...it.tiers.map((t) => t.price)) : it.price ?? 0);
 const priceLabel = (it: Item) => {
   if (!it.tiers) return money(it.price ?? 0);
+  if (!it.tiers.length) return '';
   if (it.tiers.length === 1) return `approx ${money(it.tiers[0].price)}`;
-  return `from approx ${money(fromPrice(it))}`;
+  return `from approx ${money(Math.min(...it.tiers.map((t) => t.price)))}`;
 };
 
 // Everything the order form script needs, in one small blob.
@@ -22,12 +22,12 @@ const formData = {
   depositRate: xmas.depositRate,
   ordersEmail: xmas.ordersEmail,
   paymentsLive: xmas.paymentsLive,
-  items: menu.categories.flatMap((c) =>
-    (c.items as Item[]).map((it) => ({ id: it.id, name: it.name, price: it.price ?? null, tiers: it.tiers ?? null })),
+  items: categories.flatMap((c) =>
+    c.items.filter((it) => it.available).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
   ),
 };
 
-const collectionDays = xmas.collectionDates.map((d) => ({
+const collectionDays = (xmas.collectionDates ?? []).map((d: string) => ({
   value: d,
   label: formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' }),
 }));
@@ -57,7 +57,7 @@ const steps = [
       <!-- HERO -->
       <section class="xhero">
         <div class="xhero__media">
-          <Image src={img(xmas.heroImage)} alt={xmas.heroImageAlt} widths={[640, 960, 1440]} sizes="(min-width: 1000px) 50vw, 100vw" loading="eager" fetchpriority="high" class="xhero__img" />
+          <Photo src={xmas.heroImage} widths={[640, 960, 1440]} sizes="(min-width: 1000px) 50vw, 100vw" loading="eager" fetchpriority="high" class="xhero__img" />
         </div>
         <div class="xhero__inner">
           <span class="caps xhero__label">Christmas {xmas.year}</span>
@@ -101,7 +101,7 @@ const steps = [
               <p class="list__note">Meat is priced by weight, so prices are approximate until we weigh your order. We'll confirm the final price before you collect.</p>
             </div>
 
-            {menu.categories.map((cat, ci) => (
+            {categories.map((cat, ci) => (
               <details class="cat" open={ci === 0} id={`cat-${cat.id}`}>
                 <summary class="cat__summary">
                   <span class="cat__name">
@@ -113,18 +113,18 @@ const steps = [
                 </summary>
                 <div class="cat__body">
                   <div class="cat__intro">
-                    <Image src={img(cat.image)} alt={cat.imageAlt} widths={[320, 640]} sizes="(min-width: 900px) 220px, 100vw" class="cat__img" />
+                    <Photo src={cat.image} widths={[320, 640]} sizes="(min-width: 900px) 220px, 100vw" class="cat__img" />
                     <p>{cat.blurb}</p>
                   </div>
                   <ul class="items">
-                    {(cat.items as Item[]).map((it) => (
+                    {cat.items.map((it) => (
                       <li class="item" data-item={it.id} data-cat={cat.id}>
                         <div class="item__text">
                           <span class="item__name">{it.name}</span>
                           {it.detail && <span class="item__detail">{it.detail}{it.perKg ? ` ${money(it.perKg)}/kg.` : ''}</span>}
                         </div>
-                        <span class="display item__price">{priceLabel(it)}</span>
-                        <div class="item__controls">
+                        <span class="display item__price">{it.available ? priceLabel(it) : 'Sold out'}</span>
+                        {it.available && <div class="item__controls">
                           {it.tiers && it.tiers.length > 1 && (
                             <label class="item__size">
                               <span class="visually-hidden">Size for {it.name}</span>
@@ -139,7 +139,7 @@ const steps = [
                             <input type="number" inputmode="numeric" min="0" max="20" value="0" class="qty__input" data-qty={it.id} aria-label={`Quantity of ${it.name}`} />
                             <button type="button" class="qty__btn" data-step="1" data-for={it.id} aria-label={`One more ${it.name}`}>+</button>
                           </div>
-                        </div>
+                        </div>}
                         <p class="item__error" data-error={it.id} hidden>Choose a size first.</p>
                       </li>
                     ))}
@@ -150,19 +150,19 @@ const steps = [
 
             <!-- TRUFFLES -->
             <div class="truffles">
-              <Image src={img(menu.truffles.image)} alt={menu.truffles.imageAlt} widths={[400, 800]} sizes="(min-width: 900px) 320px, 100vw" class="truffles__img" />
+              <Photo src={truffles.image} widths={[400, 800]} sizes="(min-width: 900px) 320px, 100vw" class="truffles__img" />
               <div class="truffles__body">
                 <span class="caps truffles__label">Made by us</span>
-                <h3 class="display truffles__title">{menu.truffles.title}</h3>
-                <p>{menu.truffles.text}</p>
+                <h3 class="display truffles__title">Truffle chocolates</h3>
+                <p>{truffles.text}</p>
                 <ul class="truffles__flavours">
-                  {menu.truffles.flavours.map((f) => <li class="caps">{f}</li>)}
-                  {menu.truffles.flavourCount > menu.truffles.flavours.length && (
-                    <li class="caps truffles__more">+ {menu.truffles.flavourCount - menu.truffles.flavours.length} more coming</li>
+                  {truffles.flavours.map((f) => <li class="caps">{f}</li>)}
+                  {truffles.flavourCount > truffles.flavours.length && (
+                    <li class="caps truffles__more">+ {truffles.flavourCount - truffles.flavours.length} more coming</li>
                   )}
                 </ul>
                 <p class="truffles__note">
-                  {menu.truffles.price ? money(menu.truffles.price) : 'Price coming soon.'} Ask for a box in the shop, or add a note to your order.
+                  {truffles.price ? `${money(truffles.price)} a box.` : 'Price coming soon.'} Ask for a box in the shop, or add a note to your order.
                 </p>
               </div>
             </div>

@@ -4,8 +4,8 @@ import EventCard from '../components/EventCard.astro';
 import Icon from '../components/Icon.astro';
 import { getUpcomingEvents, getSettings } from '../lib/content';
 
-const events = getUpcomingEvents();
-const s = getSettings();
+const events = await getUpcomingEvents();
+const s = await getSettings();
 const handle = s.socials.instagram ? '@' + s.socials.instagram.replace(/\/$/, '').split('/').pop() : '';
 ---
 <Layout

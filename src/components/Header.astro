@@ -1,7 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { getSettings } from '../lib/content';
-const s = getSettings();
+const s = await getSettings();
 const nav = [
   { text: 'Food & Drink', href: '/food-and-drink' },
   { text: "What's on", href: '/whats-on' },

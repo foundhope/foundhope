@@ -2,17 +2,18 @@
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import EventCard from '../components/EventCard.astro';
+import Photo from '../components/Photo.astro';
 import {
   getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, getUpcomingEvents, img, emphasis,
 } from '../lib/content';
 
 const home = getHome();
-const s = getSettings();
-const hours = getHours();
-const suppliers = getHomeSuppliers();
+const s = await getSettings();
+const hours = await getHours();
+const suppliers = await getHomeSuppliers();
 const reviews = getReviews();
-const xmas = getChristmas();
-const homeEvents = getUpcomingEvents().filter((e) => e.showOnHome).slice(0, 2);
+const xmas = await getChristmas();
+const homeEvents = (await getUpcomingEvents()).filter((e) => e.showOnHome).slice(0, 2);
 const { hero, inTheShop, cups, ourStory, visit } = home;
 ---
 <Layout>
@@ -171,7 +172,7 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
         {suppliers.map((sp) => (
           <li>
             <a href={`/suppliers/${sp.slug}`} class="supplier">
-              <Image src={img(sp.image)} alt={sp.imageAlt} widths={[400, 720]} sizes="(min-width: 900px) 360px, 100vw" class="supplier__img" />
+              <Photo src={sp.image} widths={[400, 720]} sizes="(min-width: 900px) 360px, 100vw" class="supplier__img" />
               <span class="supplier__body">
                 <span class="caps supplier__meta">{sp.type} · {sp.from}</span>
                 <span class="serif supplier__name">{sp.name}</span>
@@ -198,6 +199,16 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
             <div class="hours__row"><dt>{h.days}</dt><dd>{h.label}</dd></div>
           ))}
         </dl>
+        {hours.special.length > 0 && (
+          <div class="special">
+            <span class="caps special__title">Special opening hours</span>
+            <dl class="hours hours--special">
+              {hours.special.map((x) => (
+                <div class="hours__row"><dt>{x.label} <span class="special__when">{x.when}</span></dt><dd>{x.text}</dd></div>
+              ))}
+            </dl>
+          </div>
+        )}
         <div class="visit__contact">
           <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>
           <a href={`mailto:${s.email}`}>{s.email}</a>
@@ -306,6 +317,9 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
   .hours__row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
   .hours dt { margin: 0; }
   .hours dd { margin: 0; font-weight: 700; white-space: nowrap; }
+  .special { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+  .special__title { font-size: 12px; color: var(--accent-text); }
+  .special__when { color: var(--muted); font-size: 14px; margin-left: 6px; }
   .visit__contact { display: flex; flex-direction: column; gap: 4px; font-size: 16px; }
   .visit__contact a { text-underline-offset: 4px; }
   .visit__btn { align-self: flex-start; }
