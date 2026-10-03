@@ -56,9 +56,10 @@ const steps = [
     <>
       <!-- HERO -->
       <section class="xhero">
-        <Image src={img(xmas.heroImage)} alt="" widths={[640, 1024]} sizes="100vw" loading="eager" class="xhero__img" />
-        <div class="xhero__shade" aria-hidden="true"></div>
-        <div class="wrap xhero__inner">
+        <div class="xhero__media">
+          <Image src={img(xmas.heroImage)} alt={xmas.heroImageAlt} widths={[640, 960, 1440]} sizes="(min-width: 1000px) 50vw, 100vw" loading="eager" fetchpriority="high" class="xhero__img" />
+        </div>
+        <div class="xhero__inner">
           <span class="caps xhero__label">Christmas {xmas.year}</span>
           <h1 class="display xhero__title">Christmas at Found Hope</h1>
           <p class="xhero__text">
@@ -418,10 +419,15 @@ const steps = [
   .closed__title { font-size: clamp(46px, 6vw, 72px); }
 
   /* Hero */
-  .xhero { position: relative; overflow: hidden; background: var(--ink); color: #fff; }
+  .xhero { display: grid; background: var(--ink); color: #fff; }
+  .xhero__media { position: relative; min-height: 300px; }
   .xhero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .xhero__shade { position: absolute; inset: 0; background: rgba(12, 12, 12, 0.62); }
-  .xhero__inner { position: relative; display: flex; flex-direction: column; gap: 20px; padding-block: clamp(64px, 9vw, 110px); }
+  .xhero__inner { display: flex; flex-direction: column; justify-content: center; gap: 20px; padding: 48px var(--gutter) 56px; }
+  @media (min-width: 1000px) {
+    .xhero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 560px; }
+    .xhero__media { order: 2; min-height: 0; }
+    .xhero__inner { padding: 72px clamp(40px, 5vw, 72px) 72px max(var(--gutter), calc((100vw - var(--wrap)) / 2)); }
+  }
   .xhero__label { font-size: 14px; color: #a9c1ff; }
   .xhero__title { font-size: clamp(42px, 6vw, 68px); line-height: 0.98; text-transform: uppercase; max-width: 12em; }
   .xhero__text { font-size: 18px; line-height: 1.55; color: var(--stone-2); max-width: 38em; }
