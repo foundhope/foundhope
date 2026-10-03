@@ -1,0 +1,26 @@
+{
+  "name": "Found Hope",
+  "tagline": "Where our favourite things become your favourite things",
+  "description": "Speciality coffee, food and bottle shop in Hither Green, South East London. Coffee from small roasters, organic and biodynamic wine, and the best British farms have to offer.",
+  "address": {
+    "street": "216–218 Hither Green Lane",
+    "city": "London",
+    "postcode": "SE13 6RT",
+    "country": "GB"
+  },
+  "geo": { "lat": 51.4507, "lng": -0.0062, "label": "51.4507° N, 0.0062° W" },
+  "phone": "07861 396311",
+  "phoneIntl": "+447861396311",
+  "email": "hello@foundhope.store",
+  "ordersEmail": "orders@foundhope.store",
+  "socials": {
+    "instagram": "https://www.instagram.com/foundhopestore/",
+    "facebook": "https://www.facebook.com/FoundHopeStore/"
+  },
+  "directionsUrl": "https://www.google.com/maps/search/?api=1&query=Found+Hope+216-218+Hither+Green+Lane+London+SE13+6RT",
+  "noticeBanner": {
+    "on": false,
+    "message": "",
+    "link": ""
+  }
+}

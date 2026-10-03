@@ -1,0 +1,102 @@
+---
+import Icon from './Icon.astro';
+import { getSettings } from '../lib/content';
+const s = getSettings();
+const nav = [
+  { text: 'Food & Drink', href: '/food-and-drink' },
+  { text: "What's on", href: '/whats-on' },
+  { text: 'Our story', href: '/our-story' },
+  { text: 'Christmas', href: '/christmas' },
+  { text: 'Visit', href: '/#visit' },
+];
+const path = Astro.url.pathname;
+---
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a href="/" class="logo" aria-label="Found Hope home">
+      <span class="display logo__word">Found Hope</span>
+      <span class="mono logo__coords">{s.geo.label}</span>
+    </a>
+
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="menu-btn__open"><Icon name="menu" size={24} /></span>
+      <span class="menu-btn__close"><Icon name="close" size={24} /></span>
+      <span class="visually-hidden">Menu</span>
+    </button>
+
+    <div class="site-nav" id="site-nav">
+      <nav aria-label="Main">
+        <ul>
+          {nav.map((n) => (
+            <li><a href={n.href} aria-current={path === n.href ? 'page' : undefined}>{n.text}</a></li>
+          ))}
+        </ul>
+      </nav>
+      <span class="site-nav__rule" aria-hidden="true"></span>
+      <div class="socials">
+        {s.socials.instagram && <a href={s.socials.instagram} aria-label="Instagram" rel="noopener" target="_blank"><Icon name="instagram" /></a>}
+        {s.socials.facebook && <a href={s.socials.facebook} aria-label="Facebook" rel="noopener" target="_blank"><Icon name="facebook" /></a>}
+        <a href={`mailto:${s.email}`} aria-label="Email us"><Icon name="email" /></a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.menu-btn');
+  const header = document.querySelector('.site-header');
+  btn?.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    header?.classList.toggle('is-open', !open);
+  });
+</script>
+
+<style>
+  .site-header { border-bottom: 1px solid var(--stone-2); background: var(--paper); position: relative; z-index: 10; }
+  .site-header__inner { min-height: 88px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .logo { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: var(--ink); }
+  .logo:hover { color: var(--ink); }
+  .logo__word { font-size: 26px; line-height: 0.9; text-transform: uppercase; }
+  .logo__coords { font-size: 11px; letter-spacing: 0.06em; color: var(--muted); }
+
+  .menu-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 48px; height: 48px; margin-right: -12px;
+    background: none; border: 0; color: var(--ink); cursor: pointer;
+  }
+  .menu-btn__close { display: none; }
+  .is-open .menu-btn__open { display: none; }
+  .is-open .menu-btn__close { display: inline-flex; }
+
+  .site-nav { display: none; }
+  .is-open .site-nav {
+    display: flex; flex-direction: column; gap: 20px;
+    position: absolute; left: 0; right: 0; top: 100%;
+    padding: 12px var(--gutter) 28px; background: var(--paper);
+    border-bottom: 1px solid var(--stone-2);
+  }
+  .site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .site-nav li a {
+    display: block; padding: 12px 0; font-size: 18px; text-decoration: none;
+    text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--stone-2);
+  }
+  .site-nav__rule { display: none; }
+  .socials { display: flex; gap: 2px; margin-left: -10px; }
+  .socials a { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
+
+  @media (min-width: 1000px) {
+    .site-header__inner { min-height: 110px; }
+    .logo__word { font-size: 28px; }
+    .menu-btn { display: none; }
+    .site-nav, .is-open .site-nav {
+      display: flex; flex-direction: row; align-items: center; gap: 28px;
+      position: static; padding: 0; border: 0; background: none;
+    }
+    .site-nav ul { flex-direction: row; gap: 28px; }
+    .site-nav li a { padding: 12px 0; font-size: 14px; border: 0; }
+    .site-nav li a[aria-current='page'] { text-decoration: underline; text-underline-offset: 6px; }
+    .site-nav__rule { display: block; width: 1px; height: 22px; background: var(--rule); }
+    .socials { margin-left: 0; }
+  }
+</style>

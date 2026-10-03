@@ -1,0 +1,73 @@
+---
+import Icon from './Icon.astro';
+import { getSettings } from '../lib/content';
+const s = getSettings();
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="wrap site-footer__grid">
+    <div class="site-footer__contact">
+      <span class="caps site-footer__name">{s.name}</span>
+      <span>{s.address.street}</span>
+      <span>{s.address.city} {s.address.postcode}</span>
+      <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>
+      <a href={`mailto:${s.email}`}>{s.email}</a>
+      <div class="site-footer__socials">
+        {s.socials.instagram && <a href={s.socials.instagram} aria-label="Instagram" rel="noopener" target="_blank"><Icon name="instagram" size={18} stroke={2} /></a>}
+        {s.socials.facebook && <a href={s.socials.facebook} aria-label="Facebook" rel="noopener" target="_blank"><Icon name="facebook" size={18} stroke={2} /></a>}
+        <a href={`mailto:${s.email}`} aria-label="Email us"><Icon name="email" size={18} stroke={2} /></a>
+      </div>
+    </div>
+
+    <div class="site-footer__logo" aria-hidden="true">
+      <span class="display site-footer__word">Found Hope</span>
+      <span class="site-footer__bar"></span>
+      <span class="site-footer__icons">
+        <Icon name="coffee" size={24} stroke={1.5} />
+        <Icon name="produce" size={24} stroke={1.5} />
+        <Icon name="cow" size={24} stroke={1.5} />
+        <Icon name="cheese" size={24} stroke={1.5} />
+        <Icon name="wine" size={24} stroke={1.5} />
+      </span>
+      <span class="mono site-footer__coords">{s.geo.label}</span>
+    </div>
+
+    <nav class="site-footer__nav" aria-label="Footer">
+      <a href="/food-and-drink">Food &amp; Drink</a>
+      <a href="/whats-on">What's on</a>
+      <a href="/our-story">Our story</a>
+      <a href="/suppliers">Suppliers</a>
+      <a href="/christmas">Christmas</a>
+      <a href="/journal">Journal</a>
+      <a href="/privacy">Privacy and cookies</a>
+      <span class="site-footer__copy">© {s.name} {year}</span>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: var(--ink); color: var(--stone-2); padding: 60px 0; font-size: 16px; line-height: 1.5; }
+  .site-footer a { color: var(--stone-2); text-decoration: none; }
+  .site-footer a:hover { color: #fff; text-decoration: underline; }
+  .site-footer__grid { display: grid; gap: 48px; grid-template-columns: 1fr; }
+  .site-footer__contact { display: flex; flex-direction: column; gap: 6px; }
+  .site-footer__name { font-size: 14px; color: #fff; }
+  .site-footer__socials { margin-top: 16px; display: flex; gap: 12px; }
+  .site-footer__socials a {
+    width: 44px; height: 44px; border: 1.5px solid var(--stone-2); border-radius: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .site-footer__logo { display: flex; flex-direction: column; align-items: center; text-align: center; color: #fff; order: -1; }
+  .site-footer__word { font-size: 38px; line-height: 0.9; text-transform: uppercase; }
+  .site-footer__bar { width: 40px; height: 3px; background: #8a8a8a; margin-top: 18px; }
+  .site-footer__icons { display: flex; gap: 14px; margin-top: 16px; }
+  .site-footer__coords { font-size: 12px; letter-spacing: 0.08em; color: #a9a59d; margin-top: 10px; }
+  .site-footer__nav { display: flex; flex-direction: column; gap: 8px; }
+  .site-footer__copy { margin-top: 24px; font-size: 14px; color: #a9a59d; }
+
+  @media (min-width: 900px) {
+    .site-footer__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+    .site-footer__logo { order: 0; padding-top: 20px; }
+    .site-footer__nav { align-items: flex-end; text-align: right; }
+  }
+</style>

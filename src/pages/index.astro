@@ -1,0 +1,291 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import {
+  getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, img, emphasis,
+} from '../lib/content';
+
+const home = getHome();
+const s = getSettings();
+const hours = getHours();
+const suppliers = getHomeSuppliers();
+const reviews = getReviews();
+const xmas = getChristmas();
+const { hero, inTheShop, cups, ourStory, visit } = home;
+---
+<Layout>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <span class="caps hero__label">{hero.label}</span>
+        <h1 class="serif hero__title" set:html={emphasis(hero.headline)} />
+        <span class="hero__rule" aria-hidden="true"></span>
+        <ul class="hero__links">
+          {hero.links.map((l, i) => (
+            <li>
+              {i > 0 && <span class="hero__dot" aria-hidden="true">·</span>}
+              <a href={l.href} class="display">{l.text}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <Image
+        src={img(hero.image)}
+        alt={hero.imageAlt}
+        widths={[480, 720, 1000, 1240]}
+        sizes="(min-width: 1000px) 620px, 100vw"
+        loading="eager"
+        fetchpriority="high"
+        class="hero__img"
+      />
+    </div>
+  </section>
+
+  <!-- IN THE SHOP -->
+  <section class="shop" id="in-the-shop">
+    <div class="wrap">
+      <h2 class="caps h-section">{inTheShop.title}</h2>
+      <ul class="shop__grid">
+        {inTheShop.tiles.map((t) => (
+          <li>
+            <a href={t.href} class="shop__tile">
+              <Image src={img(t.image)} alt={t.alt} widths={[360, 560, 800]} sizes="(min-width: 1000px) 270px, (min-width: 640px) 45vw, 50vw" class="shop__img" />
+              <span class="caps shop__label">{t.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- CUPS -->
+  <section class="split cups" aria-labelledby="cups-title">
+    <div class="split__media cups__media">
+      {cups.images.map((c) => (
+        <Image src={img(c.image)} alt={c.alt} widths={[400, 720, 1000]} sizes="(min-width: 900px) 25vw, 50vw" />
+      ))}
+    </div>
+    <div class="split__body">
+      <span class="caps eyebrow">{cups.label}</span>
+      <h2 id="cups-title" class="serif h-big" set:html={emphasis(cups.headline)} />
+      <p class="body-text">{cups.text}</p>
+      <ul class="chips">
+        {cups.items.map((c) => <li class="caps">{c}</li>)}
+      </ul>
+      <a href="/#visit" class="caps text-link">{cups.linkText}</a>
+    </div>
+  </section>
+
+  <!-- OUR STORY -->
+  <section class="split story" aria-labelledby="story-title">
+    <div class="split__media">
+      <Image src={img(ourStory.image)} alt={ourStory.imageAlt} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />
+    </div>
+    <div class="split__body">
+      <span class="caps eyebrow">{ourStory.label}</span>
+      <h2 id="story-title" class="serif h-big" set:html={emphasis(ourStory.headline)} />
+      {ourStory.paragraphs.map((p) => <p class="body-text">{p}</p>)}
+      <a href="/our-story" class="caps text-link">Read our story</a>
+    </div>
+  </section>
+
+  <!-- REVIEWS: only shows once real reviews are in -->
+  {reviews.reviews.length > 0 && (
+    <section class="reviews" id="reviews">
+      <div class="wrap reviews__inner">
+        <div class="reviews__head">
+          <h2 class="caps h-section">What our customers say</h2>
+          {reviews.rating && (
+            <a href={reviews.googleUrl} class="reviews__rating" rel="noopener" target="_blank">
+              <span aria-hidden="true">★★★★★</span> {reviews.rating} on Google · {reviews.count} reviews
+            </a>
+          )}
+        </div>
+        <ul class="reviews__grid">
+          {reviews.reviews.map((r: any) => (
+            <li>
+              <figure class="review">
+                <span class="review__stars" aria-label={`${r.stars} stars`}>{'★'.repeat(r.stars)}</span>
+                <blockquote class="serif review__text">{r.text}</blockquote>
+                <figcaption class="caps review__name">{r.name} · Google</figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+        {reviews.googleUrl && <a href={reviews.googleUrl} class="caps text-link" rel="noopener" target="_blank">Read all reviews on Google</a>}
+      </div>
+    </section>
+  )}
+
+  <!-- CHRISTMAS: shows while Christmas is switched on -->
+  {xmas.live && (
+    <section class="split xmas" aria-labelledby="xmas-title">
+      <div class="split__media">
+        <Image src={img(home.christmas.image)} alt={home.christmas.imageAlt} widths={[480, 800, 1024]} sizes="(min-width: 900px) 50vw, 100vw" />
+      </div>
+      <div class="split__body xmas__body">
+        <span class="caps xmas__label">Christmas {xmas.year}</span>
+        <h2 id="xmas-title" class="serif h-big">Christmas, <em>sorted</em></h2>
+        <p class="body-text">
+          {xmas.intro} Order online with a {xmas.depositPercent}% deposit and pay the rest when you collect on {xmas.collectionText}.
+          Full refund if you cancel by {xmas.refundCutoffText}.
+        </p>
+        <div class="xmas__cta">
+          <a href="/christmas" class="btn btn--accent">Order for Christmas</a>
+          <span class="xmas__note">
+            {xmas.onlineOpen
+              ? `Order online by ${xmas.onlineCutoffText} · in the shop until ${xmas.inShopCutoffText}`
+              : `Online orders are closed. Order in the shop until ${xmas.inShopCutoffText}`}
+          </span>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- SUPPLIERS -->
+  <section class="suppliers" id="suppliers">
+    <div class="wrap suppliers__inner">
+      <div class="suppliers__head">
+        <h2 class="caps h-section">{home.suppliers.title}</h2>
+        <p>{home.suppliers.intro}</p>
+      </div>
+      <ul class="suppliers__grid">
+        {suppliers.map((sp) => (
+          <li>
+            <a href={`/suppliers/${sp.slug}`} class="supplier">
+              <Image src={img(sp.image)} alt={sp.imageAlt} widths={[400, 720]} sizes="(min-width: 900px) 360px, 100vw" class="supplier__img" />
+              <span class="supplier__body">
+                <span class="caps supplier__meta">{sp.type} · {sp.from}</span>
+                <span class="serif supplier__name">{sp.name}</span>
+                <span class="supplier__teaser">{sp.teaser}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a href="/suppliers" class="btn">Meet them all</a>
+    </div>
+  </section>
+
+  <!-- VISIT -->
+  <section class="visit" id="visit">
+    <div class="wrap visit__grid">
+      <Image src={img(visit.image)} alt={visit.imageAlt} widths={[480, 760, 1200]} sizes="(min-width: 1000px) 560px, 100vw" class="visit__img" />
+      <div class="visit__body">
+        <span class="caps eyebrow">{visit.label}</span>
+        <h2 class="serif visit__title" set:html={emphasis(visit.headline)} />
+        <address class="caps visit__address">{s.address.street}<br />{s.address.city} {s.address.postcode}</address>
+        <dl class="hours">
+          {hours.regular.map((h) => (
+            <div class="hours__row"><dt>{h.days}</dt><dd>{h.label}</dd></div>
+          ))}
+        </dl>
+        <div class="visit__contact">
+          <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>
+          <a href={`mailto:${s.email}`}>{s.email}</a>
+        </div>
+        <a href={s.directionsUrl} class="btn visit__btn" rel="noopener" target="_blank">Get directions</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .body-text { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 34em; }
+
+  /* Hero */
+  .hero { background: var(--paper); }
+  .hero__grid { display: grid; gap: 32px; padding-block: 40px 56px; align-items: center; }
+  .hero__text { display: flex; flex-direction: column; gap: 22px; }
+  .hero__label { font-size: 13px; letter-spacing: 0.22em; }
+  .hero__title { font-size: clamp(46px, 6.4vw, 68px); max-width: 9.2em; }
+  .hero__rule { height: 1px; background: var(--ink); }
+  .hero__links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; }
+  .hero__links li { display: flex; align-items: center; }
+  .hero__links a {
+    font-weight: 500; font-size: clamp(16px, 1.6vw, 20px); letter-spacing: 0.08em; text-transform: uppercase;
+    text-decoration: none; padding: 12px 0;
+  }
+  .hero__dot { font-size: 20px; color: #8a8a8a; padding: 0 14px; }
+  .hero__img { width: 100%; height: auto; mix-blend-mode: multiply; }
+  @media (min-width: 1000px) {
+    .hero__grid { grid-template-columns: minmax(0, 1fr) 620px; gap: 64px; padding-block: 48px 56px; min-height: 560px; }
+  }
+
+  /* In the shop */
+  .shop { background: var(--stone); padding-block: var(--section); }
+  .shop__grid { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 12px; }
+  .shop__tile { display: flex; flex-direction: column; gap: 14px; text-decoration: none; }
+  .shop__img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+  .shop__label { font-size: 13px; }
+  @media (min-width: 900px) {
+    .shop__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 16px; }
+    .shop__img { aspect-ratio: auto; height: 260px; }
+    .shop__label { font-size: 14px; }
+  }
+
+  /* Cups */
+  .cups { background: var(--stone-2); }
+  .cups__media { display: grid; grid-template-columns: 1fr 1fr; }
+  .cups__media img { position: static; width: 100%; height: 100%; object-fit: cover; min-height: 320px; }
+  .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips li { font-size: 11px; padding: 8px 12px; border: 1.5px solid var(--ink); }
+
+  /* Our story */
+  .story { background: var(--paper); }
+  @media (min-width: 900px) {
+    .story .split__media { order: 2; }
+  }
+
+  /* Reviews */
+  .reviews { background: var(--stone-2); padding-block: var(--section); }
+  .reviews__inner { display: flex; flex-direction: column; align-items: center; gap: 44px; }
+  .reviews__head { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+  .reviews__rating { text-decoration: none; }
+  .reviews__grid { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 16px; }
+  .review { margin: 0; height: 100%; padding: 36px 32px; background: #fff; display: flex; flex-direction: column; gap: 18px; }
+  .review__text { margin: 0; font-size: 26px; line-height: 1.25; flex-grow: 1; }
+  .review__name { font-size: 12px; color: var(--muted); }
+  @media (min-width: 900px) { .reviews__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  /* Christmas */
+  .xmas__body { background: var(--ink); color: #fff; }
+  .xmas__body .body-text { color: var(--stone-2); }
+  .xmas__label { font-size: 14px; color: #c9c5bd; }
+  .xmas__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+  .xmas__note { font-size: 15px; color: #c9c5bd; }
+
+  /* Suppliers */
+  .suppliers { background: var(--stone); padding-block: var(--section); }
+  .suppliers__inner { display: flex; flex-direction: column; align-items: center; gap: 48px; }
+  .suppliers__head { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; color: #3a3935; }
+  .suppliers__grid { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 24px 16px; }
+  .supplier { height: 100%; display: flex; flex-direction: column; background: #fff; color: var(--ink); text-decoration: none; }
+  .supplier:hover { color: var(--ink); }
+  .supplier:hover .supplier__name { text-decoration: underline; text-underline-offset: 4px; }
+  .supplier__img { width: 100%; height: 240px; object-fit: cover; }
+  .supplier__body { padding: 26px 26px 30px; display: flex; flex-direction: column; gap: 10px; }
+  .supplier__meta { font-size: 12px; color: var(--muted); }
+  .supplier__name { font-size: 32px; }
+  .supplier__teaser { font-size: 16px; line-height: 1.5; color: #3a3935; }
+  @media (min-width: 900px) { .suppliers__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  /* Visit */
+  .visit { border-top: 1px solid var(--stone-2); padding-block: clamp(56px, 7vw, 80px); }
+  .visit__grid { display: grid; gap: 40px; align-items: center; }
+  .visit__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; max-height: 620px; }
+  .visit__body { display: flex; flex-direction: column; gap: 22px; }
+  .visit__title { font-size: clamp(42px, 5vw, 56px); }
+  .visit__address { font-style: normal; font-size: 14px; line-height: 1.7; letter-spacing: 0.12em; }
+  .hours { margin: 0; font-size: 17px; max-width: 420px; }
+  .hours__row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .hours dt { margin: 0; }
+  .hours dd { margin: 0; font-weight: 700; white-space: nowrap; }
+  .visit__contact { display: flex; flex-direction: column; gap: 4px; font-size: 16px; }
+  .visit__contact a { text-underline-offset: 4px; }
+  .visit__btn { align-self: flex-start; }
+  @media (min-width: 1000px) {
+    .visit__grid { grid-template-columns: 560px minmax(0, 1fr); gap: 64px; }
+  }
+</style>

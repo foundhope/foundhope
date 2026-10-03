@@ -1,0 +1,26 @@
+---
+import { getSettings } from '../lib/content';
+interface Props { title: string; note?: string }
+const { title, note } = Astro.props;
+const s = getSettings();
+---
+<section class="soon">
+  <div class="wrap soon__inner">
+    <span class="caps eyebrow">Coming soon</span>
+    <h1 class="serif soon__title">{title}</h1>
+    <p class="soon__text">{note ?? "We're putting this page together. In the meantime, pop in or get in touch."}</p>
+    <div class="soon__contact">
+      <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>
+      <a href={`mailto:${s.email}`}>{s.email}</a>
+    </div>
+    <a href="/" class="btn">Back to the home page</a>
+  </div>
+</section>
+
+<style>
+  .soon { background: var(--stone); padding-block: clamp(80px, 12vw, 140px); }
+  .soon__inner { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+  .soon__title { font-size: clamp(46px, 6vw, 72px); }
+  .soon__text { font-size: 18px; max-width: 32em; color: var(--ink-soft); }
+  .soon__contact { display: flex; flex-direction: column; gap: 4px; }
+</style>

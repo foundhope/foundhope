@@ -1,0 +1,103 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getSettings, getHours, getChristmas } from '../lib/content';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const s = getSettings();
+const hours = getHours();
+const xmas = getChristmas();
+const { title, description = s.description, noindex = false } = Astro.props;
+const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food and bottle shop in Hither Green`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// Banner: the editable notice wins; otherwise show Christmas while online orders are open.
+const banner = s.noticeBanner.on && s.noticeBanner.message
+  ? { text: s.noticeBanner.message, link: s.noticeBanner.link, linkText: 'Find out more' }
+  : xmas.live && xmas.onlineOpen
+    ? { text: `Christmas orders now open · Order online by ${xmas.onlineCutoffText}`, link: '/christmas', linkText: 'Order now' }
+    : null;
+
+// Shop details Google can read directly (schema.org)
+const localBusiness = {
+  '@context': 'https://schema.org',
+  '@type': ['CafeOrCoffeeShop', 'Store'],
+  name: s.name,
+  description: s.description,
+  url: Astro.site?.toString(),
+  telephone: s.phoneIntl,
+  email: s.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: s.address.street.replace('–', '-'),
+    addressLocality: s.address.city,
+    postalCode: s.address.postcode,
+    addressCountry: s.address.country,
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: s.geo.lat, longitude: s.geo.lng },
+  openingHoursSpecification: hours.regular.map((h) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: h.dayCodes,
+    opens: h.opens,
+    closes: h.closes,
+  })),
+  sameAs: Object.values(s.socials).filter(Boolean),
+};
+---
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex" />}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={s.name} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="theme-color" content="#1c1c1c" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  {banner && (
+    <aside class="banner" aria-label="Announcement">
+      <div class="wrap banner__inner">
+        <span class="caps banner__text">{banner.text}</span>
+        {banner.link && <a href={banner.link} class="banner__link">{banner.linkText}</a>}
+      </div>
+    </aside>
+  )}
+  <Header />
+  <main id="main">
+    <slot />
+  </main>
+  <Footer />
+</body>
+</html>
+
+<style>
+  .banner { background: var(--accent); color: #fff; }
+  .banner__inner {
+    min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 4px 20px; padding-block: 8px; text-align: center;
+  }
+  .banner__text { font-size: 12px; letter-spacing: 0.16em; }
+  .banner__link {
+    color: #fff; font-size: 14px; font-weight: 700; text-underline-offset: 4px;
+    min-height: 28px; display: inline-flex; align-items: center;
+  }
+  .banner__link:hover { color: #fff; }
+</style>

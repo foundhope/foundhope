@@ -1,0 +1,15 @@
+---
+// Placeholder supplier pages until the real ones are built from the mockup.
+import Layout from '../../layouts/Layout.astro';
+import ComingSoon from '../../components/ComingSoon.astro';
+import { getSuppliers } from '../../lib/content';
+
+export function getStaticPaths() {
+  return getSuppliers().map((s) => ({ params: { slug: s.slug }, props: { supplier: s } }));
+}
+
+const { supplier } = Astro.props;
+---
+<Layout title={supplier.name} noindex>
+  <ComingSoon title={supplier.name} note={`${supplier.teaser} Their full page is on its way.`} />
+</Layout>

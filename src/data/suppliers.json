@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "scenery-coffee",
+    "name": "Scenery Coffee",
+    "type": "Coffee",
+    "from": "Southwark",
+    "image": "supplier-scenery",
+    "imageAlt": "Roasted coffee beans",
+    "teaser": "Fresh, easy-drinking coffee with a real push to cut waste.",
+    "website": "https://scenery.coffee",
+    "servedHere": true,
+    "takeHome": true,
+    "onHome": true
+  },
+  {
+    "slug": "natoora",
+    "name": "Natoora",
+    "type": "Fruit & veg",
+    "from": "London",
+    "image": "supplier-natoora",
+    "imageAlt": "Seasonal squash from Natoora",
+    "teaser": "Seasonal produce from small growers who farm for taste.",
+    "website": "https://natoora.com",
+    "servedHere": true,
+    "takeHome": true,
+    "onHome": true
+  },
+  {
+    "slug": "paul-rhodes-bakery",
+    "name": "Paul Rhodes Bakery",
+    "type": "Bakery",
+    "from": "Greenwich",
+    "image": "supplier-paul-rhodes",
+    "imageAlt": "Paul Rhodes sourdough loaves",
+    "teaser": "Sourdough and pastries, baked in Greenwich since 2003.",
+    "website": "https://paulrhodesbakery.co.uk",
+    "servedHere": true,
+    "takeHome": true,
+    "onHome": true
+  }
+]

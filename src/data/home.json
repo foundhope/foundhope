@@ -1,0 +1,61 @@
+{
+  "hero": {
+    "label": "Hither Green · Since 2010",
+    "headline": "Where our favourite things become *your* favourite things",
+    "links": [
+      { "text": "Coffee", "href": "/food-and-drink#coffee" },
+      { "text": "Food", "href": "/food-and-drink#food" },
+      { "text": "Bottle shop", "href": "/food-and-drink#wine" }
+    ],
+    "image": "shopfront-sketch",
+    "imageAlt": "Illustration of the Found Hope shopfront on Hither Green Lane"
+  },
+  "inTheShop": {
+    "title": "In the shop",
+    "tiles": [
+      { "label": "Coffee", "image": "coffee", "alt": "Croissants, butter, jam and a flat white", "href": "/food-and-drink#coffee" },
+      { "label": "Kitchen", "image": "kitchen", "alt": "Squash soup with pumpkin seeds and sourdough", "href": "/food-and-drink#food" },
+      { "label": "Wine", "image": "wine", "alt": "Pouring a glass of red wine", "href": "/food-and-drink#wine" },
+      { "label": "Cheese", "image": "cheese", "alt": "Artisan cheeses in a wooden tray", "href": "/food-and-drink" },
+      { "label": "Fresh produce", "image": "produce", "alt": "Muddy heritage carrots in purple, orange and white", "href": "/food-and-drink" },
+      { "label": "Meat", "image": "meat", "alt": "Rare breed beef cuts", "href": "/food-and-drink" },
+      { "label": "Bakery", "image": "bakery", "alt": "Seeded sourdough loaves", "href": "/food-and-drink" },
+      { "label": "Made by us", "image": "pickles", "alt": "Tubs of our own pickles in the shop window", "href": "/food-and-drink#made-by-us" }
+    ]
+  },
+  "cups": {
+    "label": "Made for us",
+    "headline": "Our own cups, *made by hand*",
+    "text": "Matte white stoneware cups and mugs, made for Found Hope by J Lucas Pottery and stamped with our name on the base. Take one home for your morning coffee.",
+    "items": ["Cups", "Mugs"],
+    "linkText": "Pick one up in the shop",
+    "images": [
+      { "image": "cups-stack", "alt": "Three matte white stoneware cups and mugs, stacked" },
+      { "image": "cups-stamp", "alt": "The base of a cup, stamped Found Hope and J Lucas Pottery" }
+    ]
+  },
+  "ourStory": {
+    "label": "Our story",
+    "headline": "Great produce. *Every time.*",
+    "paragraphs": [
+      "We opened in August 2020 on the old Good Hope Café site, with one simple rule: only sell produce we'd be proud to share with our own family and friends.",
+      "Coffee from our favourite small roasters. Organic and biodynamic wine. The best British farms have to offer."
+    ],
+    "image": "shopfront-flowers",
+    "imageAlt": "Flowers outside the Found Hope shopfront on Hither Green Lane"
+  },
+  "christmas": {
+    "image": "turkey",
+    "imageAlt": "Free-range turkey"
+  },
+  "suppliers": {
+    "title": "Our suppliers",
+    "intro": "The people behind our shelves. Tap one to meet them."
+  },
+  "visit": {
+    "label": "Visit us",
+    "headline": "Come and *say hello*",
+    "image": "shop-window",
+    "imageAlt": "The Found Hope shop window on Hither Green Lane, with flowers outside"
+  }
+}
