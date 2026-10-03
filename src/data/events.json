@@ -1,0 +1,15 @@
+[
+  {
+    "id": "sparkling-wine-tasting-2026",
+    "title": "Sparkling wine tasting",
+    "date": "2026-10-02",
+    "start": "18:30",
+    "end": "",
+    "description": "English sparkling wine from Henners Vineyard in Sussex, with guest chef Dominic South.",
+    "image": "wine",
+    "imageAlt": "A glass of wine being poured",
+    "price": "",
+    "bookingUrl": "",
+    "showOnHome": true
+  }
+]

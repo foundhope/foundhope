@@ -1,8 +1,9 @@
 ---
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
+import EventCard from '../components/EventCard.astro';
 import {
-  getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, img, emphasis,
+  getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, getUpcomingEvents, img, emphasis,
 } from '../lib/content';
 
 const home = getHome();
@@ -11,6 +12,7 @@ const hours = getHours();
 const suppliers = getHomeSuppliers();
 const reviews = getReviews();
 const xmas = getChristmas();
+const homeEvents = getUpcomingEvents().filter((e) => e.showOnHome).slice(0, 2);
 const { hero, inTheShop, cups, ourStory, visit } = home;
 ---
 <Layout>
@@ -89,6 +91,21 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
       <a href="/our-story" class="caps text-link">Read our story</a>
     </div>
   </section>
+
+  <!-- WHAT'S ON: only shows when an event is booked -->
+  {homeEvents.length > 0 && (
+    <section class="homeevents" id="events" aria-labelledby="events-title">
+      <div class="wrap homeevents__inner">
+        <div class="homeevents__head">
+          <h2 id="events-title" class="caps h-section">What's on</h2>
+          <a href="/whats-on" class="caps text-link">All events</a>
+        </div>
+        <ul class="homeevents__list">
+          {homeEvents.map((e) => <li><EventCard event={e} /></li>)}
+        </ul>
+      </div>
+    </section>
+  )}
 
   <!-- REVIEWS: only shows once real reviews are in -->
   {reviews.reviews.length > 0 && (
@@ -237,6 +254,13 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
   @media (min-width: 900px) {
     .story .split__media { order: 2; }
   }
+
+  /* What's on */
+  .homeevents { background: var(--stone-2); padding-block: var(--section); }
+  .homeevents__inner { display: flex; flex-direction: column; gap: 32px; }
+  .homeevents__head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
+  .homeevents__head .h-section { text-align: left; }
+  .homeevents__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
 
   /* Reviews */
   .reviews { background: var(--stone-2); padding-block: var(--section); }

@@ -1,0 +1,87 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EventCard from '../components/EventCard.astro';
+import Icon from '../components/Icon.astro';
+import { getUpcomingEvents, getSettings } from '../lib/content';
+
+const events = getUpcomingEvents();
+const s = getSettings();
+const handle = s.socials.instagram ? '@' + s.socials.instagram.replace(/\/$/, '').split('/').pop() : '';
+---
+<Layout
+  title="What's on"
+  description="Tastings, supper clubs and evenings at Found Hope in Hither Green. See what's coming up at the shop."
+>
+  <section class="whead">
+    <div class="wrap whead__inner">
+      <span class="caps eyebrow">What's on</span>
+      <h1 class="serif whead__title">Evenings at <em>the shop</em></h1>
+      <p class="whead__text">Wine tastings, cheese evenings and the odd supper club. Small, friendly and right here on Hither Green Lane.</p>
+    </div>
+  </section>
+
+  <section class="events" aria-label="Upcoming events">
+    <div class="wrap events__inner">
+      {events.length > 0 && (
+        <ul class="events__list" data-events>
+          {events.map((e) => <li><EventCard event={e} headingLevel="h2" /></li>)}
+        </ul>
+      )}
+
+      <div class="empty" data-empty hidden={events.length > 0}>
+        <h2 class="serif empty__title">Nothing booked <em>just yet</em></h2>
+        <p>We're planning the next one. Follow us on Instagram to hear about it first, or ask in the shop.</p>
+        <div class="empty__actions">
+          {s.socials.instagram && (
+            <a href={s.socials.instagram} class="btn" rel="noopener" target="_blank">
+              <Icon name="instagram" size={18} stroke={2} /> <span>Follow {handle}</span>
+            </a>
+          )}
+          <a href={`mailto:${s.email}?subject=Events at Found Hope`} class="caps text-link">Email us about events</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="private">
+    <div class="wrap private__inner">
+      <h2 class="serif private__title">Got an idea <em>for an evening?</em></h2>
+      <p>Producers, winemakers and local makers: we love hearing from you. Drop us a line at <a href={`mailto:${s.email}`}>{s.email}</a>.</p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Hide any event whose day has passed, even if the site hasn't rebuilt yet.
+  const now = new Date();
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-event-ends]'));
+  let shown = 0;
+  for (const c of cards) {
+    if (new Date(c.dataset.eventEnds!) < now) c.closest('li')?.remove();
+    else shown++;
+  }
+  if (!shown) document.querySelector('[data-empty]')?.removeAttribute('hidden');
+</script>
+
+<style>
+  .whead { padding-block: clamp(56px, 8vw, 100px) clamp(32px, 4vw, 48px); }
+  .whead__inner { display: flex; flex-direction: column; gap: 20px; }
+  .whead__title { font-size: clamp(50px, 6.6vw, 84px); }
+  .whead__text { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 36em; }
+
+  .events { background: var(--stone); padding-block: clamp(48px, 6vw, 80px); }
+  .events__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 24px; }
+
+  .empty { background: #fff; padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+  .empty[hidden] { display: none; }
+  .empty__title { font-size: clamp(38px, 4.4vw, 56px); }
+  .empty p { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 34em; }
+  .empty__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin-top: 6px; }
+  .empty__actions .btn { gap: 10px; }
+  .empty__actions .text-link { align-self: center; }
+
+  .private { padding-block: clamp(56px, 7vw, 88px); }
+  .private__inner { display: flex; flex-direction: column; gap: 14px; }
+  .private__title { font-size: clamp(34px, 3.8vw, 46px); }
+  .private p { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 40em; }
+</style>

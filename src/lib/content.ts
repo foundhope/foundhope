@@ -10,6 +10,7 @@ import suppliers from '../data/suppliers.json';
 import reviews from '../data/reviews.json';
 import home from '../data/home.json';
 import christmasMenu from '../data/christmas-menu.json';
+import events from '../data/events.json';
 
 export const getSettings = () => settings;
 export const getHours = () => hours;
@@ -68,3 +69,30 @@ export function getChristmas(today = new Date()) {
 
 export const money = (pence: number) =>
   `£${(pence / 100).toFixed(2).replace(/\.00$/, '')}`;
+
+// Events: anything whose day has passed drops off. The page also re-checks
+// in the visitor's browser, so a past event never shows even between rebuilds.
+export type ShopEvent = (typeof events)[number];
+
+export function eventEnds(e: ShopEvent) {
+  return `${e.date}T${e.end || '23:59'}:00`;
+}
+
+export function getUpcomingEvents(today = new Date()) {
+  return [...events]
+    .filter((e) => new Date(eventEnds(e)) >= today)
+    .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+}
+
+function time12(t: string) {
+  const [h, m] = t.split(':').map(Number);
+  const suffix = h >= 12 ? 'pm' : 'am';
+  const hour = h % 12 || 12;
+  return m ? `${hour}:${String(m).padStart(2, '0')}${suffix}` : `${hour}${suffix}`;
+}
+
+export function eventWhen(e: ShopEvent) {
+  const day = formatDate(e.date, { weekday: 'long', day: 'numeric', month: 'long' });
+  const time = e.start ? (e.end ? `${time12(e.start)}–${time12(e.end)}` : time12(e.start)) : '';
+  return time ? `${day} · ${time}` : day;
+}

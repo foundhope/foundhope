@@ -36,3 +36,7 @@ The site runs as a Cloudflare Worker called `foundhope`, connected to this repo.
 ## Christmas
 
 Dates live in `src/data/christmas.json`. The home page Christmas band and the top banner show while `on` is `true`, and hide themselves after the last collection day (on the next build, so this relies on the planned nightly rebuild).
+
+## Events
+
+Events live in `src/data/events.json`. Each needs a `title`, `date` (YYYY-MM-DD), `start` time, `description` and `image`. `price` and `bookingUrl` are optional: with no booking link, the card says "Just turn up". Past events drop off by themselves, and the What's On page shows "Nothing booked just yet" when there's nothing coming up. The home page only shows a What's On band when there's something booked.

@@ -1,0 +1,53 @@
+---
+import { Image } from 'astro:assets';
+import { img, eventEnds, eventWhen, type ShopEvent } from '../lib/content';
+interface Props { event: ShopEvent; headingLevel?: 'h2' | 'h3' }
+const { event: e, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const [y, m, d] = e.date.split('-');
+const month = new Date(`${e.date}T12:00:00Z`).toLocaleDateString('en-GB', { month: 'short', timeZone: 'Europe/London' });
+---
+<article class="event" data-event-ends={eventEnds(e)}>
+  <div class="event__media">
+    {e.image && <Image src={img(e.image)} alt={e.imageAlt} widths={[400, 720, 1000]} sizes="(min-width: 900px) 420px, 100vw" class="event__img" />}
+    <span class="event__date" aria-hidden="true">
+      <span class="display event__day">{Number(d)}</span>
+      <span class="caps event__month">{month}</span>
+    </span>
+  </div>
+  <div class="event__body">
+    <span class="caps event__when">{eventWhen(e)}</span>
+    <H class="serif event__title">{e.title}</H>
+    <p class="event__text">{e.description}</p>
+    <div class="event__foot">
+      {e.price && <span class="caps event__price">{e.price}</span>}
+      {e.bookingUrl
+        ? <a href={e.bookingUrl} class="btn btn--accent" rel="noopener" target="_blank">Book now</a>
+        : <span class="event__walkin">Just turn up. No need to book.</span>}
+    </div>
+  </div>
+</article>
+
+<style>
+  .event { display: grid; background: #fff; }
+  .event__media { position: relative; min-height: 240px; background: var(--stone-2); }
+  .event__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .event__date {
+    position: absolute; left: 16px; top: 16px; width: 72px; padding: 10px 0 8px;
+    display: flex; flex-direction: column; align-items: center; background: #fff; color: var(--ink);
+  }
+  .event__day { font-size: 30px; line-height: 1; }
+  .event__month { font-size: 11px; letter-spacing: 0.16em; margin-top: 4px; }
+  .event__body { padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .event__when { font-size: 12px; color: var(--accent-text); }
+  .event__title { margin: 0; font-size: clamp(32px, 3.4vw, 42px); line-height: 1; }
+  .event__text { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 36em; }
+  .event__foot { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+  .event__price { font-size: 13px; }
+  .event__walkin { font-size: 15px; color: var(--muted); }
+  @media (min-width: 900px) {
+    .event { grid-template-columns: 420px minmax(0, 1fr); }
+    .event__media { min-height: 300px; }
+    .event__body { padding: 40px 48px; justify-content: center; }
+  }
+</style>
