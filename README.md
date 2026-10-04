@@ -45,6 +45,7 @@ Go to **/studio** on the site (or `npm run studio` locally), sign in, edit, pres
 | Notice banner and contact | The blue strip on every page, phone, email, address, social links |
 | Opening hours | Normal week, plus special days (shown for 6 weeks before, gone after the day) |
 | Events | What's On page and the home page band. Past events drop off by themselves |
+| Food & Drink page | Every section of /food-and-drink: text, photos, coffee and food menus, the counters, wine picks, Made by us |
 | Christmas > Dates, deposit and truffles | Open or closed, cut-off dates, collection days, deposit %, main photo, truffles |
 | Christmas > The Christmas list | Sections, items, prices and sizes. "Available" off shows Sold out |
 | Suppliers | Supplier cards on the home page and their pages |
