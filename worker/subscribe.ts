@@ -76,7 +76,7 @@ export async function subscribe(body: any, env: SubscribeEnv): Promise<Result> {
     if (data.status === 'subscribed') {
       return { status: 200, body: { ok: true, message: "You're already on our list. Thanks for being with us!" } };
     }
-    return { status: 200, body: { ok: true, message: 'Nearly there! Check your inbox and tap the link to confirm.' } };
+    return { status: 200, body: { ok: true, message: "Nearly there! Check your inbox and tap the link to confirm. If it's not there, look in your junk folder." } };
   } catch (err) {
     console.error('Mailchimp sign-up failed', err);
     return { status: 502, body: { error: "We couldn't sign you up just now. Please try again." } };
