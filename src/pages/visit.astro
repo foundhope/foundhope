@@ -42,22 +42,28 @@ const MODE: Record<string, { label: string; icon: 'train' | 'bus' | 'walk' | 'bi
   title="Visit us"
   description={`Found Hope, ${addressLine}. Opening hours, directions, and how to get here by train or bus. Coffee, food and a bottle shop in Hither Green.`}
 >
-  <!-- HERO -->
-  <section class="split vhero">
-    <div class="split__body vhero__body">
-      <span class="caps eyebrow">Visit</span>
-      <h1 class="serif vhero__title" set:html={emphasis('Come and *say hello*')} />
-      <address class="caps vhero__address">{s.address.street}<br />{s.address.city} {s.address.postcode}</address>
-      <p class="status" data-status hidden><span class="status__dot" aria-hidden="true"></span><span data-status-text></span></p>
-      {v.intro && <p class="vhero__intro">{v.intro}</p>}
-      <div class="vhero__buttons">
-        <a href={s.directionsUrl} class="btn btn--accent" rel="noopener" target="_blank">Get directions</a>
-        <a href={`tel:${s.phoneIntl}`} class="btn btn--ghost">Call {s.phone}</a>
+  <!-- HERO: words on top, the street illustration full width underneath -->
+  <section class="vhero">
+    <div class="wrap vhero__grid">
+      <div class="vhero__head">
+        <span class="caps eyebrow">Visit</span>
+        <h1 class="serif vhero__title" set:html={emphasis('Come and *say hello*')} />
+        <address class="caps vhero__address">{s.address.street}<br />{s.address.city} {s.address.postcode}</address>
+      </div>
+      <div class="vhero__side">
+        <p class="status" data-status hidden><span class="status__dot" aria-hidden="true"></span><span data-status-text></span></p>
+        {v.intro && <p class="vhero__intro">{v.intro}</p>}
+        <div class="vhero__buttons">
+          <a href={s.directionsUrl} class="btn btn--accent" rel="noopener" target="_blank">Get directions</a>
+          <a href={`tel:${s.phoneIntl}`} class="btn btn--ghost">Call {s.phone}</a>
+        </div>
       </div>
     </div>
-    <div class="split__media">
-      {v.image && <Photo src={v.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" loading="eager" fetchpriority="high" />}
-    </div>
+    {v.image && (
+      <div class="vhero__art">
+        <Photo src={v.image} widths={[800, 1200, 1600, 1891]} sizes="100vw" loading="eager" fetchpriority="high" />
+      </div>
+    )}
   </section>
 
   <!-- HOURS AND CONTACT -->
@@ -200,14 +206,25 @@ const MODE: Record<string, { label: string; icon: 'train' | 'bus' | 'walk' | 'bi
 
 <style>
   /* Hero */
-  .vhero__body { gap: 20px; }
+  .vhero { padding-top: clamp(48px, 7vw, 88px); }
+  .vhero__grid { display: grid; gap: 28px; align-items: end; padding-bottom: clamp(32px, 4vw, 48px); }
+  .vhero__head { display: flex; flex-direction: column; gap: 20px; }
+  .vhero__side { display: flex; flex-direction: column; gap: 18px; }
   .vhero__title { font-size: clamp(54px, 6.5vw, 84px); }
   .vhero__address { font-style: normal; font-size: 15px; line-height: 1.7; letter-spacing: 0.14em; }
   .vhero__intro { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 30em; }
-  .vhero__buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+  .vhero__buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
   .btn--ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
   .btn--ghost:hover { background: var(--ink); color: #fff; }
-  @media (min-width: 900px) { .vhero .split__media { min-height: 640px; } }
+  @media (min-width: 1000px) {
+    .vhero__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 64px; }
+  }
+  /* The whole street on wide screens; zoom in on the shop on phones. */
+  .vhero__art { background: var(--stone); }
+  .vhero__art :global(img) { width: 100%; height: auto; max-height: 720px; object-fit: cover; object-position: 43% 50%; }
+  @media (max-width: 700px) {
+    .vhero__art :global(img) { aspect-ratio: 4 / 3; height: auto; }
+  }
 
   .status { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; padding: 8px 14px; font-size: 15px; font-weight: 700; background: var(--stone-2); }
   .status[hidden] { display: none; }
