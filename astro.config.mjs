@@ -9,6 +9,9 @@ const placeholderPages = [
   '/privacy',
 ];
 
+// Pages that should never be in Google, like the order thank-you page.
+const privatePages = ['/christmas/thanks'];
+
 export default defineConfig({
   site: 'https://foundhope.store',
   trailingSlash: 'never',
@@ -20,7 +23,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/$/, '');
-        return !placeholderPages.some((p) => path === p || path.startsWith(p + '/'));
+        return ![...placeholderPages, ...privatePages].some((p) => path === p || path.startsWith(p + '/'));
       },
     }),
   ],

@@ -214,8 +214,11 @@ const steps = [
                   </label>
                   <p class="form-error" data-form-error role="alert" hidden></p>
                   <button type="submit" class="btn btn--accent submit" data-submit>
-                    {xmas.paymentsLive ? 'Send order and pay deposit' : 'Send my order'}
+                    {xmas.paymentsLive ? 'Pay deposit and place order' : 'Send my order'}
                   </button>
+                  {xmas.paymentsLive && (
+                    <p class="submit__note">You'll pay the deposit on Stripe's secure page. We never see your card details.</p>
+                  )}
                   {!xmas.paymentsLive && (
                     <p class="submit__note">Online deposits are nearly ready. For now this opens an email to {xmas.ordersEmail} with your order filled in, and we'll call you to take the deposit.</p>
                   )}
@@ -400,13 +403,67 @@ const steps = [
         `Notes: ${String(fd.get('notes') || '').trim() || 'None'}`,
       ].join('\n');
 
+      const subject = `Christmas order: ${fd.get('name')}, ${day}`;
+      const mailto = `mailto:${data.ordersEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
       if (!data.paymentsLive) {
-        const subject = `Christmas order: ${fd.get('name')}, ${day}`;
-        window.location.href = `mailto:${data.ordersEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailto;
+        return;
       }
-      // When online deposits go live, this sends the order to the shop's
-      // order handler and moves on to the Stripe payment page.
+
+      // Online deposits: the shop's order handler checks the order against the
+      // real prices, then sends the customer to Stripe to pay the deposit.
+      const btn = $<HTMLButtonElement>('[data-submit]')!;
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Opening secure payment…';
+      const fail = (msg: string) => {
+        err.innerHTML = '';
+        err.append(msg + ' ');
+        const a = document.createElement('a');
+        a.href = mailto;
+        a.textContent = 'Or email us your order instead.';
+        err.append(a);
+        err.hidden = false;
+        btn.disabled = false;
+        btn.textContent = label;
+      };
+      fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          lines: ls.map((l) => ({ id: l.item.id, tier: l.tier?.id ?? null, qty: l.qty })),
+          name: fd.get('name'),
+          email,
+          phone: fd.get('phone'),
+          collection: fd.get('collection'),
+          notes: fd.get('notes'),
+          agree: !!fd.get('agree'),
+        }),
+      })
+        .then(async (res) => {
+          const out = await res.json().catch(() => ({}));
+          if (res.ok && out.url) {
+            window.location.href = out.url;
+          } else if (out.fallback) {
+            window.location.href = mailto;
+            btn.disabled = false;
+            btn.textContent = label;
+          } else {
+            fail(out.error || 'Something went wrong.');
+          }
+        })
+        .catch(() => fail('We couldn\'t reach the shop. Check your connection and try again.'));
     });
+
+    // Back from Stripe without paying
+    if (new URLSearchParams(location.search).has('cancelled')) {
+      const err = $<HTMLElement>('[data-form-error]');
+      if (err) {
+        err.textContent = 'Payment cancelled. Your order has not been placed. You can try again below.';
+        err.hidden = false;
+      }
+    }
 
     render();
   }
