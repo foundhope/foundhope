@@ -83,6 +83,12 @@ const QUERY = `{
   },
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, showOnHome
+  },
+  "foodAndDrink": *[_id == "foodAndDrink"][0]{
+    ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, kitchenBoard${IMAGE}, wineImage${IMAGE},
+    counters[]{ ..., image${IMAGE}, supplier->{ name, "slug": slug.current } },
+    picks[]{ ..., image${IMAGE} },
+    products[]{ ..., image${IMAGE} }
   }
 }`;
 
@@ -236,6 +242,79 @@ export async function getChristmas(today = new Date()) {
     inShopCutoffText: formatDate(c.inShopOrderCutoff),
     refundCutoffText: formatDate(c.refundCutoff),
     collectionText: `${collectionDays.slice(0, -1).join(', ')}${collectionDays.length > 1 ? ' or ' : ''}${collectionDays.at(-1)} ${formatDate(last, { month: 'long' })}${c.collectionBy ? `, by ${c.collectionBy}` : ''}`,
+  };
+}
+
+// ---------- Food & Drink page ----------
+// Anything switched off in Sanity is left out. Prices are in pence (null = no price shown).
+// Christmas-only products show only while the Christmas page is live.
+
+export async function getFoodAndDrink() {
+  const f = (await load()).foodAndDrink ?? {};
+  const christmasLive = (await getChristmas()).live;
+  const on = (x: any) => x?.available !== false;
+  const price = (p?: number | null) => (p != null ? pence(p) : null);
+  const menu = (items: any[] = []) =>
+    items.filter(on).map((m) => ({
+      key: m._key as string,
+      name: m.name as string,
+      detail: (m.detail ?? '') as string,
+      price: price(m.price),
+      dietary: (m.dietary ?? []) as string[],
+    }));
+  return {
+    intro: (f.intro ?? '') as string,
+    coffee: {
+      text: (f.coffeeText ?? '') as string,
+      image: f.coffeeImage as SanityImage | undefined,
+      menu: menu(f.coffeeMenu),
+      note: (f.coffeeNote ?? '') as string,
+    },
+    kitchen: {
+      text: (f.kitchenText ?? '') as string,
+      hours: (f.kitchenHours ?? '') as string,
+      image: f.kitchenImage as SanityImage | undefined,
+      board: f.kitchenMode === 'board' && f.kitchenBoard?.asset ? (f.kitchenBoard as SanityImage) : null,
+      menu: menu(f.kitchenMenu),
+    },
+    counters: ((f.counters ?? []) as any[]).map((c) => ({
+      key: c._key as string,
+      title: c.title as string,
+      text: (c.text ?? '') as string,
+      image: c.image as SanityImage | undefined,
+      supplier: c.supplier?.slug ? { name: c.supplier.name as string, slug: c.supplier.slug as string } : null,
+    })),
+    wine: {
+      text: (f.wineText ?? '') as string,
+      image: f.wineImage as SanityImage | undefined,
+      picksTitle: (f.picksTitle || "Johan's picks") as string,
+      picks: f.picksOn
+        ? ((f.picks ?? []) as any[]).slice(0, 3).map((b) => ({
+            key: b._key as string,
+            name: b.name as string,
+            producer: (b.producer ?? '') as string,
+            note: (b.note ?? '') as string,
+            price: price(b.price),
+            image: b.image as SanityImage | undefined,
+          }))
+        : [],
+    },
+    madeByUs: {
+      text: (f.madeByUsText ?? '') as string,
+      products: ((f.products ?? []) as any[])
+        .filter(on)
+        .filter((p) => p.season !== 'christmas' || christmasLive)
+        .map((p) => ({
+          key: p._key as string,
+          name: p.name as string,
+          detail: (p.detail ?? '') as string,
+          varieties: (p.varieties ?? []) as string[],
+          price: price(p.price),
+          priceNote: (p.priceNote ?? '') as string,
+          image: p.image as SanityImage | undefined,
+          christmas: p.season === 'christmas',
+        })),
+    },
   };
 }
 

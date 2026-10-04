@@ -1,0 +1,304 @@
+---
+// Food & Drink. Every word, photo, menu line and price here is edited in
+// Sanity under "Food & Drink page". Headings stay fixed in this file.
+import Layout from '../layouts/Layout.astro';
+import Photo from '../components/Photo.astro';
+import { getFoodAndDrink, getHours, getSettings, money, emphasis } from '../lib/content';
+
+const fd = await getFoodAndDrink();
+const hours = await getHours();
+const s = await getSettings();
+
+const jump = [
+  { href: '#coffee', label: 'Coffee' },
+  { href: '#food', label: 'Food' },
+  { href: '#counters', label: 'Counters' },
+  { href: '#wine', label: 'Wine' },
+  ...(fd.madeByUs.products.length ? [{ href: '#made-by-us', label: 'Made by us' }] : []),
+];
+
+const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten free' };
+---
+<Layout
+  title="Food & Drink"
+  description="Coffee from Scenery, breakfast and lunch cooked by Nick, counters of British cheese, veg, meat and bread, and a bottle shop of organic and biodynamic wine. Hither Green, SE13."
+>
+  <!-- INTRO -->
+  <section class="fhero">
+    <div class="wrap fhero__grid">
+      <div class="fhero__head">
+        <span class="caps eyebrow">Food &amp; Drink</span>
+        <h1 class="serif fhero__title" set:html={emphasis('Good things to *eat, drink and take home*')} />
+      </div>
+      {fd.intro && <p class="fhero__text">{fd.intro}</p>}
+    </div>
+  </section>
+
+  <nav class="jump" aria-label="On this page">
+    <ul class="wrap jump__list">
+      {jump.map((j) => <li><a href={j.href} class="caps">{j.label}</a></li>)}
+    </ul>
+  </nav>
+
+  <!-- COFFEE -->
+  <section class="split anchor" id="coffee" aria-labelledby="coffee-title">
+    <div class="split__media">
+      {fd.coffee.image && <Photo src={fd.coffee.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />}
+    </div>
+    <div class="split__body">
+      <span class="caps eyebrow">Coffee</span>
+      <h2 id="coffee-title" class="serif h-big" set:html={emphasis('Good *coffee*')} />
+      {fd.coffee.text && <p class="lead">{fd.coffee.text}</p>}
+      {fd.coffee.menu.length > 0 && (
+        <ul class="menu">
+          {fd.coffee.menu.map((m) => (
+            <li class="menu__row">
+              <span class="menu__name">{m.name}</span>
+              {m.price != null && <span class="mono menu__price">{money(m.price)}</span>}
+              {m.detail && <span class="menu__detail">{m.detail}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {fd.coffee.note && <p class="smallprint">{fd.coffee.note}</p>}
+    </div>
+  </section>
+
+  <!-- KITCHEN -->
+  <section class="split split--flip anchor kitchen" id="food" aria-labelledby="food-title">
+    <div class="split__media">
+      {fd.kitchen.image && <Photo src={fd.kitchen.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />}
+    </div>
+    <div class="split__body">
+      <span class="caps eyebrow">Kitchen</span>
+      <h2 id="food-title" class="serif h-big" set:html={emphasis('From the *kitchen*')} />
+      {fd.kitchen.text && <p class="lead">{fd.kitchen.text}</p>}
+      {fd.kitchen.hours && <p class="caps served">{fd.kitchen.hours}</p>}
+      {fd.kitchen.board ? (
+        <Photo src={fd.kitchen.board} widths={[480, 800, 1200]} sizes="(min-width: 900px) 40vw, 100vw" class="board" />
+      ) : fd.kitchen.menu.length > 0 && (
+        <>
+          <ul class="menu">
+            {fd.kitchen.menu.map((m) => (
+              <li class="menu__row">
+                <span class="menu__name">
+                  {m.name}
+                  {m.dietary.map((d) => <abbr class="diet" title={DIET[d] ?? d}>{d}</abbr>)}
+                </span>
+                {m.price != null && <span class="mono menu__price">{money(m.price)}</span>}
+                {m.detail && <span class="menu__detail">{m.detail}</span>}
+              </li>
+            ))}
+          </ul>
+          <p class="smallprint">V vegetarian · VG vegan · GF gluten free. Allergies? Ask us before you order.</p>
+        </>
+      )}
+    </div>
+  </section>
+
+  <!-- COUNTERS -->
+  {fd.counters.length > 0 && (
+    <section class="counters anchor" id="counters" aria-labelledby="counters-title">
+      <div class="wrap">
+        <div class="counters__head">
+          <span class="caps eyebrow">Take it home</span>
+          <h2 id="counters-title" class="serif h-big" set:html={emphasis('The *counters*')} />
+        </div>
+        <ul class="counters__grid">
+          {fd.counters.map((c) => (
+            <li class="counter">
+              {c.image && <Photo src={c.image} widths={[400, 700]} sizes="(min-width: 1000px) 340px, (min-width: 640px) 45vw, 100vw" class="counter__img" />}
+              <h3 class="caps counter__title">{c.title}</h3>
+              {c.text && <p class="counter__text">{c.text}</p>}
+              {c.supplier && <a href={`/suppliers/${c.supplier.slug}`} class="caps counter__link">Meet {c.supplier.name}</a>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- WINE -->
+  <section class="split anchor wine" id="wine" aria-labelledby="wine-title">
+    <div class="split__media">
+      {fd.wine.image && <Photo src={fd.wine.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />}
+    </div>
+    <div class="split__body">
+      <span class="caps eyebrow">Wine</span>
+      <h2 id="wine-title" class="serif h-big" set:html={emphasis('The *bottle shop*')} />
+      {fd.wine.text && <p class="lead">{fd.wine.text}</p>}
+      {fd.wine.picks.length > 0 && (
+        <div class="picks">
+          <span class="caps picks__title">{fd.wine.picksTitle}</span>
+          <ul class="picks__list">
+            {fd.wine.picks.map((b) => (
+              <li class="pick">
+                {b.image && <Photo src={b.image} widths={[160, 320]} sizes="80px" class="pick__img" />}
+                <div class="pick__body">
+                  <span class="pick__name">{b.name}</span>
+                  {b.producer && <span class="pick__producer">{b.producer}</span>}
+                  {b.note && <span class="pick__note">{b.note}</span>}
+                </div>
+                {b.price != null && <span class="mono menu__price">{money(b.price)}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- MADE BY US -->
+  {fd.madeByUs.products.length > 0 && (
+    <section class="made anchor" id="made-by-us" aria-labelledby="made-title">
+      <div class="wrap">
+        <div class="made__head">
+          <span class="caps eyebrow">Made by us</span>
+          <h2 id="made-title" class="serif h-big" set:html={emphasis('Our *own*')} />
+          {fd.madeByUs.text && <p class="lead">{fd.madeByUs.text}</p>}
+        </div>
+        <ul class="made__grid">
+          {fd.madeByUs.products.map((p) => (
+            <li class="product">
+              {p.image && <Photo src={p.image} widths={[400, 700, 1000]} sizes="(min-width: 1000px) 360px, (min-width: 640px) 45vw, 100vw" class="product__img" />}
+              <div class="product__top">
+                <h3 class="caps product__name">{p.name}</h3>
+                {p.price != null && (
+                  <span class="mono product__price">{p.priceNote && /from/i.test(p.priceNote) ? 'From ' : ''}{money(p.price)}{p.priceNote && !/from/i.test(p.priceNote) ? ` ${p.priceNote}` : ''}</span>
+                )}
+              </div>
+              {p.detail && <p class="product__detail">{p.detail}</p>}
+              {p.varieties.length > 0 && (
+                <ul class="chips">{p.varieties.map((v) => <li>{v}</li>)}</ul>
+              )}
+              {p.christmas && <a href="/christmas" class="caps counter__link">Order for Christmas</a>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- VISIT STRIP -->
+  <section class="vstrip" aria-labelledby="vstrip-title">
+    <div class="wrap vstrip__grid">
+      <div class="vstrip__head">
+        <h2 id="vstrip-title" class="serif vstrip__title" set:html={emphasis('Come and *try it*')} />
+        <address class="caps vstrip__address">{s.address.street}, {s.address.city} {s.address.postcode}</address>
+      </div>
+      <dl class="vstrip__hours">
+        {hours.regular.map((h) => (
+          <div><dt>{h.days}</dt><dd>{h.label}</dd></div>
+        ))}
+        {hours.special.map((x) => (
+          <div class="vstrip__special"><dt>{x.label}</dt><dd>{x.text}</dd></div>
+        ))}
+      </dl>
+      <a href={s.directionsUrl} class="btn vstrip__btn" rel="noopener" target="_blank">Get directions</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Intro */
+  .fhero { padding-block: clamp(48px, 7vw, 96px) clamp(32px, 4vw, 56px); }
+  .fhero__grid { display: grid; gap: 28px; align-items: end; }
+  .fhero__head { display: flex; flex-direction: column; gap: 20px; }
+  .fhero__title { font-size: clamp(48px, 6.5vw, 84px); max-width: 11em; }
+  .fhero__text { font-size: 19px; line-height: 1.6; color: var(--ink-soft); max-width: 32em; }
+  @media (min-width: 1000px) {
+    .fhero__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 64px; }
+  }
+
+  /* Jump links: stay at the top while scrolling */
+  .jump { position: sticky; top: 0; z-index: 20; background: var(--paper); border-block: 1px solid var(--stone-2); }
+  .jump__list { list-style: none; margin-block: 0; display: flex; gap: 6px 28px; overflow-x: auto; scrollbar-width: none; }
+  .jump__list::-webkit-scrollbar { display: none; }
+  .jump__list a { display: inline-flex; align-items: center; min-height: 56px; font-size: 13px; white-space: nowrap; text-decoration: none; }
+  @media (max-width: 520px) {
+    .jump__list { gap: 4px 12px; justify-content: space-between; }
+    .jump__list a { font-size: 11px; letter-spacing: 0.12em; }
+  }
+  .anchor { scroll-margin-top: 58px; }
+
+  /* Shared text */
+  .lead { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 34em; }
+  .smallprint { font-size: 14px; color: var(--muted); }
+
+  /* Menus */
+  .menu { list-style: none; margin: 4px 0 0; padding: 0; max-width: 480px; }
+  .menu__row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; row-gap: 2px;
+    padding: 14px 0; border-bottom: 1px solid var(--rule);
+  }
+  .menu__row:first-child { border-top: 1px solid var(--rule); }
+  .menu__name { font-weight: 700; font-size: 17px; }
+  .menu__price { font-size: 15px; white-space: nowrap; }
+  .menu__detail { grid-column: 1 / -1; font-size: 15px; color: var(--muted); }
+  .diet {
+    display: inline-block; margin-left: 8px; padding: 1px 6px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-decoration: none; border: 1px solid var(--rule); border-radius: 3px; vertical-align: 2px;
+  }
+
+  /* Kitchen */
+  .kitchen { background: var(--stone); }
+  .served { font-size: 13px; color: var(--accent-text); }
+  .kitchen :global(.board) { width: 100%; max-width: 520px; height: auto; }
+  @media (min-width: 900px) {
+    .split--flip .split__media { order: 2; }
+  }
+
+  /* Counters */
+  .counters { padding-block: var(--section); }
+  .counters__head { display: flex; flex-direction: column; gap: 18px; margin-bottom: 40px; }
+  .counters__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 40px 28px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  .counter { display: flex; flex-direction: column; gap: 10px; }
+  .counter :global(.counter__img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; margin-bottom: 8px; }
+  .counter__title { font-size: 15px; }
+  .counter__text { font-size: 16px; line-height: 1.55; color: var(--ink-soft); }
+  .counter__link { font-size: 13px; color: var(--accent-text); text-underline-offset: 4px; }
+
+  /* Wine */
+  .wine { background: var(--ink); color: #fff; }
+  .wine .eyebrow { color: #8fb0ff; }
+  .wine .lead { color: #e9e7e2; }
+  .wine .menu__price { color: #fff; }
+  .picks { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
+  .picks__title { font-size: 13px; color: #8fb0ff; }
+  .picks__list { list-style: none; margin: 0; padding: 0; }
+  .pick { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #45433f; }
+  .pick :global(.pick__img) { width: 64px; height: 80px; object-fit: cover; }
+  .pick__body { display: flex; flex-direction: column; gap: 2px; grid-column: 2; }
+  .pick__name { font-weight: 700; }
+  .pick__producer, .pick__note { font-size: 15px; color: #cfcbc3; }
+
+  /* Made by us */
+  .made { background: var(--stone-2); padding-block: var(--section); }
+  .made__head { display: flex; flex-direction: column; gap: 18px; margin-bottom: 40px; }
+  .made__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 40px 28px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  .product { display: flex; flex-direction: column; gap: 12px; }
+  .product :global(.product__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; margin-bottom: 6px; }
+  .product__top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .product__name { font-size: 15px; }
+  .product__price { font-size: 15px; white-space: nowrap; }
+  .product__detail { font-size: 16px; line-height: 1.55; color: var(--ink-soft); }
+  .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips li { font-size: 14px; padding: 5px 12px; background: var(--paper); border-radius: 999px; }
+
+  /* Visit strip */
+  .vstrip { background: var(--accent); color: #fff; padding-block: clamp(48px, 6vw, 72px); }
+  .vstrip__grid { display: grid; gap: 28px; align-items: center; }
+  .vstrip__head { display: flex; flex-direction: column; gap: 14px; }
+  .vstrip__title { font-size: clamp(40px, 4.5vw, 56px); }
+  .vstrip__address { font-style: normal; font-size: 13px; letter-spacing: 0.12em; }
+  .vstrip__hours { margin: 0; font-size: 16px; display: flex; flex-direction: column; }
+  .vstrip__hours div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.35); }
+  .vstrip__hours dt, .vstrip__hours dd { margin: 0; }
+  .vstrip__hours dd { font-weight: 700; white-space: nowrap; }
+  .vstrip__special dt::before { content: '★ '; }
+  .vstrip__btn { background: #fff; color: var(--ink); justify-self: start; }
+  .vstrip__btn:hover { background: var(--stone-2); color: var(--ink); }
+  @media (min-width: 1000px) {
+    .vstrip__grid { grid-template-columns: minmax(0, 1fr) 360px auto; gap: 56px; }
+  }
+</style>

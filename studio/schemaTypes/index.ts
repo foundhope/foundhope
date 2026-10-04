@@ -3,8 +3,9 @@ import { openingHours } from './openingHours'
 import { event } from './event'
 import { supplier } from './supplier'
 import { christmasSettings, christmasCategory } from './christmas'
+import { foodAndDrink } from './foodAndDrink'
 
-export const schemaTypes = [siteSettings, openingHours, event, supplier, christmasSettings, christmasCategory]
+export const schemaTypes = [siteSettings, openingHours, event, supplier, christmasSettings, christmasCategory, foodAndDrink]
 
 // One-of-a-kind documents, edited from a fixed menu item rather than a list.
-export const SINGLETONS = ['siteSettings', 'openingHours', 'christmasSettings']
+export const SINGLETONS = ['siteSettings', 'openingHours', 'christmasSettings', 'foodAndDrink']

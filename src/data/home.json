@@ -16,10 +16,10 @@
       { "label": "Coffee", "image": "coffee", "alt": "Croissants, butter, jam and a flat white", "href": "/food-and-drink#coffee" },
       { "label": "Kitchen", "image": "kitchen", "alt": "Squash soup with pumpkin seeds and sourdough", "href": "/food-and-drink#food" },
       { "label": "Wine", "image": "wine", "alt": "Pouring a glass of red wine", "href": "/food-and-drink#wine" },
-      { "label": "Cheese", "image": "cheese", "alt": "Artisan cheeses in a wooden tray", "href": "/food-and-drink" },
-      { "label": "Fresh produce", "image": "produce", "alt": "Muddy heritage carrots in purple, orange and white", "href": "/food-and-drink" },
-      { "label": "Meat", "image": "meat", "alt": "Rare breed beef cuts", "href": "/food-and-drink" },
-      { "label": "Bakery", "image": "bakery", "alt": "Seeded sourdough loaves", "href": "/food-and-drink" },
+      { "label": "Cheese", "image": "cheese", "alt": "Artisan cheeses in a wooden tray", "href": "/food-and-drink#counters" },
+      { "label": "Fresh produce", "image": "produce", "alt": "Muddy heritage carrots in purple, orange and white", "href": "/food-and-drink#counters" },
+      { "label": "Meat", "image": "meat", "alt": "Rare breed beef cuts", "href": "/food-and-drink#counters" },
+      { "label": "Bakery", "image": "bakery", "alt": "Seeded sourdough loaves", "href": "/food-and-drink#counters" },
       { "label": "Made by us", "image": "pickles", "alt": "Tubs of our own pickles in the shop window", "href": "/food-and-drink#made-by-us" }
     ]
   },
