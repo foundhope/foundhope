@@ -6,6 +6,7 @@ import { StarIcon } from '@sanity/icons/Star'
 import { BasketIcon } from '@sanity/icons/Basket'
 import { UsersIcon } from '@sanity/icons/Users'
 import { LemonIcon } from '@sanity/icons/Lemon'
+import { PinIcon } from '@sanity/icons/Pin'
 
 export const structure: StructureResolver = (S) => {
   const single = (type: string, title: string, icon: any) =>
@@ -26,6 +27,7 @@ export const structure: StructureResolver = (S) => {
         ),
       S.divider(),
       single('foodAndDrink', 'Food & Drink page', LemonIcon),
+      single('visitPage', 'Visit page', PinIcon),
       S.listItem()
         .title('Christmas')
         .icon(StarIcon)

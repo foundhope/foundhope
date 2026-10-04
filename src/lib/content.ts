@@ -92,6 +92,7 @@ const QUERY = `{
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, showOnHome
   },
+  "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
     ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, wineImage${IMAGE},
     kitchenBoard{ ..., asset->{ _id, _createdAt, metadata { dimensions, lqip } } },
@@ -177,6 +178,9 @@ export async function getHours(today = new Date()) {
     .sort((a: any, b: any) => a.date.localeCompare(b.date))
     .map((x: any) => ({
       date: x.date,
+      closed: !!x.closed,
+      opens: x.opens as string | undefined,
+      closes: x.closes as string | undefined,
       label: x.label || formatDate(x.date, { weekday: 'long', day: 'numeric', month: 'long' }),
       when: formatDate(x.date, { weekday: 'short', day: 'numeric', month: 'short' }),
       text: x.closed ? 'Closed' : `${time12(x.opens)} – ${time12(x.closes)}`,
@@ -264,6 +268,18 @@ export async function getChristmas(today = new Date()) {
     inShopCutoffText: formatDate(c.inShopOrderCutoff),
     refundCutoffText: formatDate(c.refundCutoff),
     collectionText: `${collectionDays.slice(0, -1).join(', ')}${collectionDays.length > 1 ? ' or ' : ''}${collectionDays.at(-1)} ${formatDate(last, { month: 'long' })}${c.collectionBy ? `, by ${c.collectionBy}` : ''}`,
+  };
+}
+
+// ---------- Visit page ----------
+
+export async function getVisit() {
+  const v = (await load()).visit ?? {};
+  return {
+    intro: (v.intro ?? '') as string,
+    image: v.image as SanityImage | undefined,
+    gettingHere: ((v.gettingHere ?? []) as any[]).filter((r) => r.text).map((r) => ({ key: r._key as string, mode: r.mode as string, text: r.text as string })),
+    goodToKnow: ((v.goodToKnow ?? []) as string[]).filter(Boolean),
   };
 }
 

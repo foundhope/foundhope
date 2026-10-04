@@ -46,6 +46,7 @@ Go to **/studio** on the site (or `npm run studio` locally), sign in, edit, pres
 | Opening hours | Normal week, plus special days (shown for 6 weeks before, gone after the day) |
 | Events | What's On page and the home page band. Past events drop off by themselves |
 | Food & Drink page | Every section of /food-and-drink: text, photos, coffee and food menus, the counters, wine picks, Made by us |
+| Visit page | Intro, photo, Getting here and Good to know on /visit. Hours and contact details come from their own sections |
 | Christmas > Dates, deposit and truffles | Open or closed, cut-off dates, collection days, deposit %, main photo, truffles |
 | Christmas > The Christmas list | Sections, items, prices and sizes. "Available" off shows Sold out |
 | Suppliers | The Suppliers page, each supplier's own page (about, a line from Nick, how we work together, what's in the shop), and the 3 cards on the home page. "Show on the website" off hides them and their page |

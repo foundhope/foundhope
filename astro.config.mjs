@@ -6,7 +6,6 @@ import sitemap from '@astrojs/sitemap';
 // until they're built. Remove a path from this list when its page goes live.
 const placeholderPages = [
   '/journal',
-  '/visit',
   '/privacy',
 ];
 
