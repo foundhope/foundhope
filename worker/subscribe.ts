@@ -82,3 +82,26 @@ export async function subscribe(body: any, env: SubscribeEnv): Promise<Result> {
     return { status: 502, body: { error: "We couldn't sign you up just now. Please try again." } };
   }
 }
+
+// Health check for the sign-up: is the key working, and which audience will
+// people join? Adds nobody. GET /api/subscribe/status
+export async function subscribeStatus(env: SubscribeEnv): Promise<Result> {
+  const key = env.MAILCHIMP_API_KEY;
+  if (!key) return { status: 200, body: { on: false } };
+  const dc = key.split('-').pop();
+  try {
+    const res = await fetch(`https://${dc}.api.mailchimp.com/3.0/lists?count=5&fields=lists.id,lists.name,lists.stats.member_count`, {
+      headers: { authorization: `Basic ${btoa(`fh:${key}`)}` },
+    });
+    if (!res.ok) return { status: 200, body: { on: true, ok: false, error: `Mailchimp said ${res.status}` } };
+    const data: any = await res.json();
+    const lists = (data.lists ?? []).map((l: any) => ({ name: l.name, members: l.stats?.member_count }));
+    const using = env.MAILCHIMP_AUDIENCE_ID
+      ? (data.lists ?? []).find((l: any) => l.id === env.MAILCHIMP_AUDIENCE_ID)?.name
+      : lists[0]?.name;
+    return { status: 200, body: { on: true, ok: true, using, audiences: lists.length } };
+  } catch {
+    return { status: 200, body: { on: true, ok: false } };
+  }
+}
+

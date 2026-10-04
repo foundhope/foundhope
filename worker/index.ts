@@ -3,7 +3,7 @@
 // - a nightly schedule that rebuilds the site.
 // Everything else goes straight to the files.
 
-import { subscribe, type SubscribeEnv } from './subscribe';
+import { subscribe, subscribeStatus, type SubscribeEnv } from './subscribe';
 import { buildOrder, lineText, money, orderMetadata, type Category, type ChristmasSettings } from './order';
 
 interface Env extends SubscribeEnv {
@@ -130,6 +130,10 @@ export default {
     if (url.pathname === '/api/checkout/status') {
       const key = env.STRIPE_SECRET_KEY ?? '';
       return json({ on: !!key, test: /^(sk|rk)_test_/.test(key) });
+    }
+    if (url.pathname === '/api/subscribe/status') {
+      const out = await subscribeStatus(env);
+      return json(out.body, out.status);
     }
     if (url.pathname === '/api/subscribe' && request.method === 'POST') {
       const body = await request.json().catch(() => null);
