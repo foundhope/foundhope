@@ -38,6 +38,8 @@ The site runs as a Cloudflare Worker called `foundhope`, connected to this repo.
 
 ## Editing content
 
+The editors' guide is at **/help** (also the **How to** tab in the Studio). Its words live in `src/pages/help.md`. Update it when the Studio changes.
+
 Go to **/studio** on the site (or `npm run studio` locally), sign in, edit, press **Publish**.
 
 | In the Studio | What it changes |

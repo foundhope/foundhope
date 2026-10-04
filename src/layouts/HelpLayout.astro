@@ -1,0 +1,40 @@
+---
+// The editors' how-to guide (src/pages/help.md). Kept out of Google.
+// Also shown inside the Studio as the "How to" tab.
+import Layout from './Layout.astro';
+const { frontmatter } = Astro.props;
+---
+<Layout title={frontmatter.title} noindex>
+  <article class="help">
+    <div class="wrap help__inner">
+      <span class="caps eyebrow">For Nick and Johan</span>
+      <h1 class="serif help__title">{frontmatter.title}</h1>
+      <div class="help__body"><slot /></div>
+    </div>
+  </article>
+</Layout>
+
+<!-- Inside the Studio's "How to" tab: hide the site's header, footer and banners -->
+<script is:inline>
+  if (new URLSearchParams(location.search).has('in-studio')) document.documentElement.classList.add('in-studio');
+</script>
+
+<style is:global>
+  .in-studio .site-header, .in-studio .site-footer, .in-studio .banner, .in-studio [data-consent], .in-studio .skip-link { display: none !important; }
+</style>
+
+<style>
+  .help { padding-block: clamp(40px, 6vw, 80px) var(--section); }
+  .help__inner { max-width: calc(720px + 2 * var(--gutter)); display: flex; flex-direction: column; gap: 18px; }
+  .help__title { font-size: clamp(44px, 6vw, 68px); }
+  .help__body { font-size: 18px; line-height: 1.65; color: var(--ink-soft); }
+  .help__body :global(h2) { font-family: var(--serif); font-size: clamp(32px, 4vw, 42px); line-height: 1.1; color: var(--ink); margin: 40px 0 8px; }
+  .help__body :global(h3) { font-size: 16px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: var(--ink); margin: 32px 0 10px; }
+  .help__body :global(p) { margin: 0 0 14px; }
+  .help__body :global(ol), .help__body :global(ul) { margin: 0 0 14px; padding-left: 26px; display: flex; flex-direction: column; gap: 8px; }
+  .help__body :global(ol li::marker) { font-weight: 700; color: var(--accent-text); }
+  .help__body :global(strong) { color: var(--ink); }
+  .help__body :global(blockquote) { margin: 18px 0; padding: 16px 20px; background: #fff4d6; border-left: 3px solid #e0a100; }
+  .help__body :global(blockquote p) { margin: 0; }
+  .help__body :global(hr) { border: 0; border-top: 1px solid var(--rule); margin: 40px 0 0; }
+</style>
