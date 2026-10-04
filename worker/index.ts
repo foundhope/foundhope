@@ -125,6 +125,11 @@ export default {
 
     if (url.pathname === '/api/checkout' && request.method === 'POST') return createCheckout(request, env);
     if (url.pathname === '/api/checkout/session' && request.method === 'GET') return checkoutSummary(url, env);
+    // Lets the Christmas page show "Test mode" while the Stripe test key is in.
+    if (url.pathname === '/api/checkout/status') {
+      const key = env.STRIPE_SECRET_KEY ?? '';
+      return json({ on: !!key, test: /^(sk|rk)_test_/.test(key) });
+    }
     if (url.pathname.startsWith('/api/')) return json({ error: 'Not found' }, 404);
 
     // Sanity Studio is a single-page app. Serve its real files (code, images)

@@ -219,6 +219,7 @@ const steps = [
                   {xmas.paymentsLive && (
                     <p class="submit__note">You'll pay the deposit on Stripe's secure page. We never see your card details.</p>
                   )}
+                  <p class="testmode" data-testmode hidden>Test mode: no real payments. Use card 4242 4242 4242 4242, any future date, any 3 digits.</p>
                   {!xmas.paymentsLive && (
                     <p class="submit__note">Online deposits are nearly ready. For now this opens an email to {xmas.ordersEmail} with your order filled in, and we'll call you to take the deposit.</p>
                   )}
@@ -456,6 +457,14 @@ const steps = [
         .catch(() => fail('We couldn\'t reach the shop. Check your connection and try again.'));
     });
 
+    // While the Stripe test key is in, say so next to the button.
+    if (data.paymentsLive) {
+      fetch('/api/checkout/status')
+        .then((r) => r.json())
+        .then((st) => { if (st.test) $<HTMLElement>('[data-testmode]')!.hidden = false; })
+        .catch(() => {});
+    }
+
     // Back from Stripe without paying
     if (new URLSearchParams(location.search).has('cancelled')) {
       const err = $<HTMLElement>('[data-form-error]');
@@ -608,6 +617,8 @@ const steps = [
   .form-error { margin: 0; font-size: 14px; color: #b42318; }
   .submit { width: 100%; border: 0; cursor: pointer; font-family: inherit; }
   .submit__note { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .testmode { font-size: 13px; line-height: 1.5; padding: 10px 12px; background: #fff4d6; color: #6b4b00; border-left: 3px solid #e0a100; }
+  .testmode[hidden] { display: none; }
 
   /* Phone bar */
   .bar {
