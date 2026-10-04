@@ -72,12 +72,12 @@ export const foodAndDrink = defineType({
       group: 'kitchen',
       options: {
         list: [
-          { title: 'Typed list (below)', value: 'list' },
-          { title: 'Photo of the chalkboard', value: 'board' },
+          { title: 'Upload the printed menu (photo or PDF)', value: 'board' },
+          { title: 'Type the menu in', value: 'list' },
         ],
         layout: 'radio',
       },
-      initialValue: 'list',
+      initialValue: 'board',
     }),
     defineField({
       name: 'kitchenMenu',
@@ -87,11 +87,25 @@ export const foodAndDrink = defineType({
       group: 'kitchen',
       hidden: ({ document }) => document?.kitchenMode === 'board',
     }),
-    {
-      ...photoField('kitchenBoard', 'Chalkboard photo', 'Snap the board and upload it. Make sure it\'s readable.'),
+    // The printed menu: a phone photo of the printout, a PDF, or both.
+    // The page shows the day it was uploaded, so customers know it's current.
+    defineField({
+      name: 'kitchenBoard',
+      title: 'Photo of the printed menu',
+      type: 'image',
       group: 'kitchen',
-      hidden: ({ document }: any) => document?.kitchenMode !== 'board',
-    },
+      description: 'Lay the printout flat in good light and take a photo straight on. Upload a new one whenever the menu changes, then press Publish.',
+      hidden: ({ document }) => document?.kitchenMode !== 'board',
+    }),
+    defineField({
+      name: 'kitchenPdf',
+      title: 'Or the menu as a PDF',
+      type: 'file',
+      group: 'kitchen',
+      options: { accept: 'application/pdf' },
+      description: 'The file you print from. Shows as a "See the full menu" button.',
+      hidden: ({ document }) => document?.kitchenMode !== 'board',
+    }),
 
     // Counters
     defineField({
@@ -124,14 +138,14 @@ export const foodAndDrink = defineType({
       type: 'boolean',
       group: 'wine',
       initialValue: false,
-      description: 'Up to 3 bottles, changed each month. Leave off if nobody has time to keep it fresh.',
+      description: 'Up to 3 bottles, changed each month. Hidden on the site until at least one bottle is added.',
     }),
     defineField({
       name: 'picksTitle',
       title: 'Picks heading',
       type: 'string',
       group: 'wine',
-      initialValue: "Johan's picks",
+      initialValue: "Johan's picks this month",
       hidden: ({ document }) => !document?.picksOn,
     }),
     defineField({

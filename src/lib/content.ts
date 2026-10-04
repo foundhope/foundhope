@@ -85,7 +85,9 @@ const QUERY = `{
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, showOnHome
   },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
-    ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, kitchenBoard${IMAGE}, wineImage${IMAGE},
+    ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, wineImage${IMAGE},
+    kitchenBoard{ ..., asset->{ _id, _createdAt, metadata { dimensions, lqip } } },
+    kitchenPdf{ asset->{ url, _createdAt, originalFilename } },
     counters[]{ ..., image${IMAGE}, supplier->{ name, "slug": slug.current } },
     picks[]{ ..., image${IMAGE} },
     products[]{ ..., image${IMAGE} }
@@ -274,7 +276,13 @@ export async function getFoodAndDrink() {
       text: (f.kitchenText ?? '') as string,
       hours: (f.kitchenHours ?? '') as string,
       image: f.kitchenImage as SanityImage | undefined,
-      board: f.kitchenMode === 'board' && f.kitchenBoard?.asset ? (f.kitchenBoard as SanityImage) : null,
+      printed: f.kitchenMode !== 'list',
+      board: f.kitchenMode !== 'list' && f.kitchenBoard?.asset ? ({ ...f.kitchenBoard, alt: "Today's food menu" } as SanityImage) : null,
+      pdf: f.kitchenMode !== 'list' && f.kitchenPdf?.asset?.url ? (f.kitchenPdf.asset.url as string) : null,
+      // Newest upload of the two, shown as "Menu updated ..."
+      updated: f.kitchenMode !== 'list'
+        ? ([f.kitchenBoard?.asset?._createdAt, f.kitchenPdf?.asset?._createdAt].filter(Boolean).sort().at(-1) as string | undefined) ?? null
+        : null,
       menu: menu(f.kitchenMenu),
     },
     counters: ((f.counters ?? []) as any[]).map((c) => ({
@@ -287,7 +295,7 @@ export async function getFoodAndDrink() {
     wine: {
       text: (f.wineText ?? '') as string,
       image: f.wineImage as SanityImage | undefined,
-      picksTitle: (f.picksTitle || "Johan's picks") as string,
+      picksTitle: (f.picksTitle || "Johan's picks this month") as string,
       picks: f.picksOn
         ? ((f.picks ?? []) as any[]).slice(0, 3).map((b) => ({
             key: b._key as string,
