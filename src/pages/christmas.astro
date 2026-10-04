@@ -217,7 +217,7 @@ const steps = [
                     {xmas.paymentsLive ? 'Pay deposit and place order' : 'Send my order'}
                   </button>
                   {xmas.paymentsLive && (
-                    <p class="submit__note">You'll pay the deposit on Stripe's secure page. We never see your card details.</p>
+                    <p class="submit__note">You'll pay the deposit on Stripe's secure page. We never see your card details. <a href="/privacy">How we use your details</a>.</p>
                   )}
                   <p class="testmode" data-testmode hidden>Test mode: no real payments. Use card 4242 4242 4242 4242, any future date, any 3 digits.</p>
                   {!xmas.paymentsLive && (

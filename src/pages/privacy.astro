@@ -1,0 +1,198 @@
+---
+// Privacy and cookies. Written to match what the site really does. If the site
+// starts collecting something new (a new form, a new tool), update this page
+// and the "Last updated" date.
+import Layout from '../layouts/Layout.astro';
+import { getSettings, getChristmas } from '../lib/content';
+
+const s = await getSettings();
+const xmas = await getChristmas();
+const ordersEmail = xmas.ordersEmail ?? 'orders@foundhope.store';
+const updated = '4 October 2026';
+// If Found Hope is a limited company, add the company name and number here,
+// e.g. 'Found Hope is the trading name of Example Ltd (company number 01234567).'
+const legalLine = '';
+---
+<Layout title="Privacy and cookies" description="How Found Hope uses your personal information and cookies, and your rights.">
+  <article class="legal">
+    <div class="wrap legal__inner">
+      <header class="legal__head">
+        <span class="caps eyebrow">The small print</span>
+        <h1 class="serif legal__title">Privacy and <em>cookies</em></h1>
+        <p class="legal__updated">Last updated {updated}</p>
+      </header>
+
+      <section class="short" aria-labelledby="short-title">
+        <h2 id="short-title" class="caps short__title">In short</h2>
+        <ul>
+          <li>We only collect what we need to take your order, answer your email or send you our newsletter.</li>
+          <li>We never sell your details.</li>
+          <li>Card payments are handled by Stripe. We never see your card details.</li>
+          <li>We only use analytics cookies if you say yes.</li>
+          <li>Email <a href={`mailto:${s.email}`}>{s.email}</a> to see, change or delete what we hold about you.</li>
+        </ul>
+      </section>
+
+      <div class="prose">
+        <h2>Who we are</h2>
+        <p>
+          Found Hope is a coffee, food and bottle shop at {s.address.street}, {s.address.city} {s.address.postcode}.
+          {legalLine && ` ${legalLine}`} We are responsible for the personal information you give us through this website,
+          by email or in the shop. You can contact us at <a href={`mailto:${s.email}`}>{s.email}</a> or on <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>.
+        </p>
+
+        <h2>What we collect and why</h2>
+
+        <h3>Christmas orders</h3>
+        <p>
+          When you place a Christmas order we ask for your name, email, phone number, collection day and anything else you'd like to tell us.
+          We use this to prepare your order, contact you about it (for example to confirm the final weight and price) and hand it over when you collect.
+        </p>
+        <p>
+          You pay the deposit on a secure page run by <a href="https://stripe.com/gb/privacy" rel="noopener" target="_blank">Stripe</a>.
+          Stripe handles your card details and we never see them. Stripe also keeps a copy of your order details with the payment, so we can find it, refund it if you cancel, and keep proper accounts.
+        </p>
+        <p>
+          If you tell us about an allergy or dietary need, we only use it to prepare your order safely. Please only share what we need to know.
+        </p>
+        <p class="basis">Why we're allowed to: to carry out the order you asked us for, and to meet our legal duty to keep financial records.</p>
+
+        <h3>Emails and phone calls</h3>
+        <p>
+          If you email or call us, we use your details to reply. Our email is provided by Google Workspace.
+        </p>
+        <p class="basis">Why we're allowed to: our legitimate interest in answering you.</p>
+
+        <h3>Our newsletter</h3>
+        <p>
+          If you sign up to our mailing list, we use your email address (and your name, if you give it) to send you news from the shop, such as Christmas orders opening, events and new things on the shelves.
+          Our mailing list is run by <a href="https://www.intuit.com/privacy/statement/" rel="noopener" target="_blank">Mailchimp</a>.
+          Every email has an unsubscribe link, and you can also just email us to be taken off.
+        </p>
+        <p class="basis">Why we're allowed to: you've asked us to (consent). You can withdraw it at any time.</p>
+
+        <h3>Visiting the website</h3>
+        <p>
+          Our website is hosted by <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener" target="_blank">Cloudflare</a>, which processes basic technical information, like your IP address, to deliver pages and keep the site secure.
+          If you say yes to analytics cookies, we use Google Analytics to see how many people visit and which pages are popular. It doesn't tell us who you are.
+          The map on our Visit page is from OpenStreetMap, which receives your IP address when the map loads.
+        </p>
+        <p class="basis">Why we're allowed to: our legitimate interest in running a secure website, and your consent for analytics.</p>
+
+        <h2>Who we share it with</h2>
+        <p>We never sell your information. We only share it with the services that help us run the shop:</p>
+        <ul>
+          <li><strong>Stripe</strong>: deposit payments and order details</li>
+          <li><strong>Google</strong>: email (Google Workspace) and, if you agree, website analytics (Google Analytics)</li>
+          <li><strong>Mailchimp</strong>: our newsletter, if you sign up</li>
+          <li><strong>Cloudflare</strong>: hosting our website</li>
+        </ul>
+        <p>
+          Some of these companies store data outside the UK, mainly in the US. When they do, they use the safeguards UK data protection law requires.
+          We may also share information if the law requires it.
+        </p>
+
+        <h2>How long we keep it</h2>
+        <ul>
+          <li><strong>Orders and payments:</strong> as long as the law requires for tax and accounting records, usually six years.</li>
+          <li><strong>Emails:</strong> as long as we need them to deal with what you asked, then we delete them.</li>
+          <li><strong>Newsletter:</strong> until you unsubscribe.</li>
+          <li><strong>Analytics:</strong> Google Analytics keeps data for up to 14 months.</li>
+        </ul>
+
+        <h2>Your rights</h2>
+        <p>You can ask us to:</p>
+        <ul>
+          <li>tell you what information we hold about you and send you a copy</li>
+          <li>correct anything that's wrong</li>
+          <li>delete your information, unless we have to keep it by law</li>
+          <li>stop using it, or limit how we use it</li>
+          <li>stop sending you marketing emails</li>
+        </ul>
+        <p>
+          Just email <a href={`mailto:${s.email}`}>{s.email}</a>. We'll reply within a month. It's free.
+        </p>
+        <p>
+          If you're unhappy with how we've handled your information, please tell us first so we can put it right.
+          You can also complain to the Information Commissioner's Office at <a href="https://ico.org.uk/make-a-complaint/" rel="noopener" target="_blank">ico.org.uk</a> or on 0303 123 1113.
+        </p>
+
+        <h2 id="cookies">Cookies</h2>
+        <p>
+          Cookies are small files a website saves on your device. We keep them to a minimum.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">What</th><th scope="col">Why</th><th scope="col">When</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Your cookie choice</td>
+                <td>Remembers whether you said yes or no to analytics, so we don't ask every time.</td>
+                <td>Saved in your browser for 12 months. Not shared with anyone.</td>
+              </tr>
+              <tr>
+                <td>Google Analytics<br /><span class="muted">_ga, _ga_*</span></td>
+                <td>Counts visits and shows which pages are popular.</td>
+                <td>Only if you say yes. Up to 2 years.</td>
+              </tr>
+              <tr>
+                <td>Stripe</td>
+                <td>Keeps payments secure and helps prevent fraud.</td>
+                <td>Only on Stripe's payment page, when you pay a deposit.</td>
+              </tr>
+              <tr>
+                <td>Cloudflare</td>
+                <td>May set a cookie to protect the site from bots and attacks.</td>
+                <td>Only when needed for security.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          You can change your mind about analytics at any time with the <button type="button" class="linklike" data-cookie-settings>cookie settings</button> link, which is also at the bottom of every page.
+          You can also block or delete cookies in your browser settings.
+        </p>
+
+        <h2>Changes</h2>
+        <p>
+          If we change how we use your information, we'll update this page and the date at the top.
+        </p>
+        <p>
+          Questions? Email <a href={`mailto:${s.email}`}>{s.email}</a>. For anything about a Christmas order, email <a href={`mailto:${ordersEmail}`}>{ordersEmail}</a>.
+        </p>
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .legal { padding-block: clamp(48px, 7vw, 96px) var(--section); }
+  .legal__inner { max-width: calc(760px + 2 * var(--gutter)); display: flex; flex-direction: column; gap: 40px; }
+  .legal__head { display: flex; flex-direction: column; gap: 18px; }
+  .legal__title { font-size: clamp(48px, 6vw, 76px); }
+  .legal__updated { font-size: 15px; color: var(--muted); }
+
+  .short { background: var(--stone); padding: clamp(22px, 4vw, 32px); border-left: 3px solid var(--accent); }
+  .short__title { font-size: 13px; margin-bottom: 12px; }
+  .short ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 17px; line-height: 1.55; }
+
+  .prose { font-size: 17px; line-height: 1.7; color: var(--ink-soft); }
+  .prose h2 { font-family: var(--serif); font-size: clamp(30px, 3.4vw, 40px); line-height: 1.1; color: var(--ink); margin: 48px 0 14px; scroll-margin-top: 24px; }
+  .prose h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: var(--ink); margin: 30px 0 10px; }
+  .prose p { margin: 0 0 14px; }
+  .prose ul { margin: 0 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .prose a { text-underline-offset: 3px; }
+  .basis { font-size: 15px; color: var(--muted); padding-left: 14px; border-left: 2px solid var(--stone-2); }
+  .muted { color: var(--muted); font-size: 14px; font-family: var(--mono); }
+
+  .table-wrap { overflow-x: auto; margin: 6px 0 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; min-width: 520px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink); padding: 10px 12px; border-bottom: 2px solid var(--ink); }
+  td { vertical-align: top; padding: 12px; border-bottom: 1px solid var(--rule); }
+  td:first-child { font-weight: 700; color: var(--ink); white-space: nowrap; }
+
+  .linklike { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .linklike:hover { color: var(--accent); }
+</style>

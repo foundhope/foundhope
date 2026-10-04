@@ -1,0 +1,101 @@
+---
+// Asks once whether analytics is OK. Google Analytics only loads after a yes,
+// and only on the real site (never on preview addresses). The choice is saved
+// on the visitor's device for 12 months. Any element with data-cookie-settings
+// (footer link, privacy page) opens this again.
+const GA_ID = 'G-MWCY964QJ6';
+const LIVE_HOSTS = ['foundhope.store', 'www.foundhope.store'];
+---
+<div class="consent" data-consent hidden role="region" aria-label="Cookie choice">
+  <p class="consent__text">
+    Can we use analytics cookies to see how people use our site? It helps us make it better. <a href="/privacy#cookies">More about cookies</a>
+  </p>
+  <div class="consent__buttons">
+    <button type="button" class="consent__btn" data-consent-choice="no">No thanks</button>
+    <button type="button" class="consent__btn" data-consent-choice="yes">That's fine</button>
+  </div>
+</div>
+
+<script is:inline define:vars={{ GA_ID, LIVE_HOSTS }}>
+  (function () {
+    var KEY = 'fh-consent';
+    var YEAR = 365 * 864e5;
+    var box = document.querySelector('[data-consent]');
+
+    function read() {
+      try {
+        var v = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (v && (v.choice === 'yes' || v.choice === 'no') && Date.now() - v.at < YEAR) return v.choice;
+      } catch (e) {}
+      return null;
+    }
+    function save(choice) {
+      try { localStorage.setItem(KEY, JSON.stringify({ choice: choice, at: Date.now() })); } catch (e) {}
+    }
+    function loadAnalytics() {
+      if (LIVE_HOSTS.indexOf(location.hostname) === -1 || window.__fhGa) return;
+      window.__fhGa = true;
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', GA_ID, { anonymize_ip: true });
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+    }
+    function clearAnalyticsCookies() {
+      document.cookie.split(';').forEach(function (c) {
+        var name = c.split('=')[0].trim();
+        if (name.indexOf('_ga') !== 0) return;
+        ['', '; domain=.foundhope.store', '; domain=foundhope.store'].forEach(function (d) {
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + d;
+        });
+      });
+    }
+    function open() { if (box) box.hidden = false; }
+    function close() { if (box) box.hidden = true; }
+
+    var choice = read();
+    if (choice === 'yes') loadAnalytics();
+    if (!choice) open();
+
+    if (box) {
+      box.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-consent-choice]');
+        if (!btn) return;
+        var c = btn.getAttribute('data-consent-choice');
+        var before = read();
+        save(c);
+        close();
+        if (c === 'yes') loadAnalytics();
+        if (c === 'no' && before === 'yes') { clearAnalyticsCookies(); location.reload(); }
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-cookie-settings]')) { e.preventDefault(); open(); }
+    });
+  })();
+</script>
+
+<style>
+  .consent {
+    position: fixed; z-index: 60; left: 16px; right: 16px; bottom: 16px;
+    max-width: 520px; padding: 20px 22px;
+    background: var(--ink); color: #fff;
+    display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  .consent[hidden] { display: none; }
+  .consent__text { font-size: 15px; line-height: 1.5; }
+  .consent__text a { color: #fff; text-underline-offset: 3px; }
+  .consent__buttons { display: flex; gap: 10px; }
+  .consent__btn {
+    flex: 1; min-height: 46px; padding: 0 16px; border: 1.5px solid #fff; background: transparent; color: #fff;
+    font: inherit; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; cursor: pointer;
+  }
+  .consent__btn[data-consent-choice='yes'] { background: #fff; color: var(--ink); }
+  .consent__btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+  .consent__btn[data-consent-choice='yes']:hover { background: var(--stone-2); color: var(--ink); }
+  @media (min-width: 640px) { .consent { right: auto; left: 24px; bottom: 24px; } }
+</style>

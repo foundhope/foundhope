@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import CookieBanner from '../components/CookieBanner.astro';
 import { getSettings, getHours, getChristmas } from '../lib/content';
 
 interface Props {
@@ -85,6 +86,7 @@ const localBusiness = {
     <slot />
   </main>
   <Footer />
+  <CookieBanner />
 </body>
 </html>
 

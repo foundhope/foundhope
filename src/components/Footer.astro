@@ -41,6 +41,7 @@ const year = new Date().getFullYear();
       <a href="/visit">Visit us</a>
       <a href="/journal">Journal</a>
       <a href="/privacy">Privacy and cookies</a>
+      <button type="button" class="site-footer__cookies" data-cookie-settings>Cookie settings</button>
       <span class="site-footer__copy">© {s.name} {year}</span>
     </nav>
   </div>
@@ -50,6 +51,8 @@ const year = new Date().getFullYear();
   .site-footer { background: var(--ink); color: var(--stone-2); padding: 60px 0; font-size: 16px; line-height: 1.5; }
   .site-footer a { color: var(--stone-2); text-decoration: none; }
   .site-footer a:hover { color: #fff; text-decoration: underline; }
+  .site-footer__cookies { font: inherit; color: var(--stone-2); background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+  .site-footer__cookies:hover { color: #fff; text-decoration: underline; }
   .site-footer__grid { display: grid; gap: 48px; grid-template-columns: 1fr; }
   .site-footer__contact { display: flex; flex-direction: column; gap: 6px; }
   .site-footer__name { font-size: 14px; color: #fff; }
