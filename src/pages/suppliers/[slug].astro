@@ -19,6 +19,15 @@ export async function getStaticPaths() {
 
 const { supplier: sp, more } = Astro.props as { supplier: Supplier; more: Supplier[] };
 const meta = [sp.type, sp.from].filter(Boolean).join(' · ');
+// Wide photos (like a shelf shot) get cropped and zoomed in the hero, so ask
+// for a bigger version to keep them sharp.
+const dims = sp.image?.asset?.metadata?.dimensions;
+const aspect = dims ? dims.width / dims.height : 1;
+const wide = aspect > 1.3;
+const heroWidths = wide ? [800, 1200, 1800, 2400] : [480, 800, 1200];
+const heroSizes = wide
+  ? `(min-width: 900px) ${Math.round(Math.min(aspect, 3) * 45)}vw, ${Math.round(Math.min(aspect, 3) * 85)}vw`
+  : '(min-width: 900px) 50vw, 100vw';
 const shortName = sp.name.replace(/\s+(Bakery|Coffee|Wines|London|Farmers)$/i, '');
 const siteLabel = sp.website ? sp.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : '';
 const description = [sp.teaser, sp.about[0]].filter(Boolean).join(' ').slice(0, 200) || `${sp.name}, one of our suppliers.`;
@@ -33,7 +42,7 @@ const description = [sp.teaser, sp.about[0]].filter(Boolean).join(' ').slice(0, 
   <!-- HERO -->
   <section class="split sphero">
     <div class="split__media">
-      {sp.image && <Photo src={sp.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" loading="eager" fetchpriority="high" />}
+      {sp.image && <Photo src={sp.image} widths={heroWidths} sizes={heroSizes} loading="eager" fetchpriority="high" />}
     </div>
     <div class="split__body">
       {meta && <span class="caps eyebrow">{meta}</span>}
