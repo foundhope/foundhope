@@ -3,9 +3,10 @@
 // - a nightly schedule that rebuilds the site.
 // Everything else goes straight to the files.
 
+import { subscribe, type SubscribeEnv } from './subscribe';
 import { buildOrder, lineText, money, orderMetadata, type Category, type ChristmasSettings } from './order';
 
-interface Env {
+interface Env extends SubscribeEnv {
   ASSETS: { fetch: (request: Request | URL | string) => Promise<Response> };
   // Cloudflare deploy hook URL, added as a secret in the Worker's settings.
   DEPLOY_HOOK_URL?: string;
@@ -129,6 +130,11 @@ export default {
     if (url.pathname === '/api/checkout/status') {
       const key = env.STRIPE_SECRET_KEY ?? '';
       return json({ on: !!key, test: /^(sk|rk)_test_/.test(key) });
+    }
+    if (url.pathname === '/api/subscribe' && request.method === 'POST') {
+      const body = await request.json().catch(() => null);
+      const out = await subscribe(body, env);
+      return json(out.body, out.status);
     }
     if (url.pathname.startsWith('/api/')) return json({ error: 'Not found' }, 404);
 

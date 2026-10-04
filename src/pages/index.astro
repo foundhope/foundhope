@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import EventCard from '../components/EventCard.astro';
 import SupplierCard from '../components/SupplierCard.astro';
+import Newsletter from '../components/Newsletter.astro';
 import {
   getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, getUpcomingEvents, img, emphasis,
 } from '../lib/content';
@@ -16,7 +17,7 @@ const xmas = await getChristmas();
 const homeEvents = (await getUpcomingEvents()).filter((e) => e.showOnHome).slice(0, 2);
 const { hero, inTheShop, cups, ourStory, visit } = home;
 ---
-<Layout>
+<Layout hideNewsletter>
   <!-- HERO -->
   <section class="hero">
     <div class="wrap hero__grid">
@@ -178,6 +179,9 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
       <a href="/suppliers" class="btn">Meet them all</a>
     </div>
   </section>
+
+  <!-- NEWSLETTER -->
+  <Newsletter />
 
   <!-- VISIT -->
   <section class="visit" id="visit">

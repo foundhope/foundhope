@@ -9,12 +9,13 @@ interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  hideNewsletter?: boolean; // the home page has its own newsletter band
 }
 
 const s = await getSettings();
 const hours = await getHours();
 const xmas = await getChristmas();
-const { title, description = s.description, noindex = false } = Astro.props;
+const { title, description = s.description, noindex = false, hideNewsletter = false } = Astro.props;
 const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food and bottle shop in Hither Green`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
@@ -85,7 +86,7 @@ const localBusiness = {
   <main id="main">
     <slot />
   </main>
-  <Footer />
+  <Footer hideNewsletter={hideNewsletter} />
   <CookieBanner />
 </body>
 </html>

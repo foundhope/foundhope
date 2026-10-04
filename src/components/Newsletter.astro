@@ -1,0 +1,131 @@
+---
+// Newsletter sign-up. "band" for a page section, "footer" for the dark footer.
+// Sends to /api/subscribe, which adds people to Mailchimp (they confirm by email).
+import { getSettings, emphasis } from '../lib/content';
+
+interface Props { variant?: 'band' | 'footer' }
+const { variant = 'band' } = Astro.props;
+const s = await getSettings();
+const id = `nl-${variant}`;
+---
+<section class:list={['nl', `nl--${variant}`]} aria-labelledby={`${id}-title`}>
+  <div class:list={['nl__inner', { wrap: variant === 'band' }]}>
+    <div class="nl__copy">
+      {variant === 'band' && <span class="caps eyebrow">Newsletter</span>}
+      <h2 id={`${id}-title`} class:list={[variant === 'band' ? 'serif nl__title' : 'caps nl__title-small']} set:html={variant === 'band' ? emphasis('Hear it *first*') : 'Hear it first'} />
+      <p class="nl__text">Christmas orders opening, tastings and new things on the shelves. Not too often, and you can unsubscribe any time.</p>
+    </div>
+    <form class="nl__form" data-newsletter novalidate data-fallback={`mailto:${s.email}?subject=${encodeURIComponent('Please add me to the mailing list')}`}>
+      <div class="nl__fields">
+        {variant === 'band' && (
+          <label class="nl__field">
+            <span class="visually-hidden">First name (optional)</span>
+            <input name="name" autocomplete="given-name" placeholder="First name (optional)" />
+          </label>
+        )}
+        <label class="nl__field nl__field--email">
+          <span class="visually-hidden">Email address</span>
+          <input name="email" type="email" autocomplete="email" placeholder="Your email" required />
+        </label>
+        <label class="nl__trap" aria-hidden="true">Leave this empty <input name="website" tabindex="-1" autocomplete="off" /></label>
+        <button type="submit" class="btn nl__btn">Sign me up</button>
+      </div>
+      <p class="nl__msg" data-msg role="status" aria-live="polite"></p>
+      <p class="nl__small">We'll email you to confirm. See our <a href="/privacy">privacy policy</a>.</p>
+    </form>
+  </div>
+</section>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-newsletter]')) {
+    if (form.dataset.ready) continue;
+    form.dataset.ready = '1';
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = form.querySelector<HTMLElement>('[data-msg]')!;
+      const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      const fd = new FormData(form);
+      const email = String(fd.get('email') || '').trim();
+      msg.classList.remove('is-error', 'is-ok');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.textContent = 'Please check your email address.';
+        msg.classList.add('is-error');
+        form.querySelector<HTMLInputElement>('input[name="email"]')!.focus();
+        return;
+      }
+      btn.disabled = true;
+      const label = btn.textContent;
+      btn.textContent = 'Signing you up…';
+      try {
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email, name: fd.get('name') || '', website: fd.get('website') || '' }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.ok) {
+          msg.textContent = out.message;
+          msg.classList.add('is-ok');
+          form.querySelector<HTMLElement>('.nl__fields')!.hidden = true;
+        } else if (out.fallback) {
+          msg.innerHTML = '';
+          const a = document.createElement('a');
+          a.href = form.dataset.fallback!;
+          a.textContent = 'email us';
+          msg.append('Online sign-up opens soon. For now, ', a, " and we'll add you.");
+        } else {
+          msg.textContent = out.error || 'Something went wrong. Please try again.';
+          msg.classList.add('is-error');
+        }
+      } catch {
+        msg.textContent = "We couldn't reach the shop. Check your connection and try again.";
+        msg.classList.add('is-error');
+      }
+      btn.disabled = false;
+      btn.textContent = label;
+    });
+  }
+</script>
+
+<style>
+  .nl__trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .nl__fields { display: flex; flex-wrap: wrap; gap: 10px; }
+  .nl__fields[hidden] { display: none; }
+  .nl__field { flex: 1 1 200px; display: flex; }
+  .nl__field input {
+    width: 100%; min-height: 52px; padding: 0 16px; font: inherit; font-size: 16px;
+    border: 1.5px solid var(--ink); background: #fff; color: var(--ink); border-radius: 0;
+  }
+  .nl__field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .nl__btn { flex: 0 0 auto; border: 0; cursor: pointer; font-family: inherit; }
+  .nl__btn:disabled { opacity: 0.7; cursor: default; }
+  .nl__msg { font-size: 15px; line-height: 1.5; min-height: 0; }
+  .nl__msg:empty { display: none; }
+  .nl__msg.is-ok { font-weight: 700; }
+  .nl__msg.is-error { color: #b42318; }
+  .nl__msg a { text-underline-offset: 3px; }
+  .nl__small { font-size: 13px; color: var(--muted); }
+  .nl__small a { color: inherit; text-underline-offset: 3px; }
+  .nl__form { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Band: a full section on a page */
+  .nl--band { background: var(--stone-2); padding-block: clamp(56px, 7vw, 88px); }
+  .nl--band .nl__inner { display: grid; gap: 28px; align-items: center; }
+  .nl--band .nl__copy { display: flex; flex-direction: column; gap: 14px; }
+  .nl__title { font-size: clamp(42px, 5vw, 56px); }
+  .nl--band .nl__text { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 28em; }
+  @media (min-width: 1000px) { .nl--band .nl__inner { grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: 64px; } }
+
+  /* Footer: compact, on dark */
+  .nl--footer { border-bottom: 1px solid rgba(255, 255, 255, 0.18); padding-bottom: 40px; margin-bottom: 48px; }
+  .nl--footer .nl__inner { display: grid; gap: 18px; align-items: end; }
+  .nl--footer .nl__copy { display: flex; flex-direction: column; gap: 8px; }
+  .nl__title-small { font-size: 14px; color: #fff; }
+  .nl--footer .nl__text { font-size: 15px; color: var(--stone-2); max-width: 30em; }
+  .nl--footer .nl__field input { border-color: #fff; }
+  .nl--footer .nl__btn { background: #fff; color: var(--ink); }
+  .nl--footer .nl__btn:hover { background: var(--stone-2); color: var(--ink); }
+  .nl--footer .nl__small, .nl--footer .nl__msg { color: var(--stone-2); }
+  .nl--footer .nl__msg.is-error { color: #ffb4ab; }
+  @media (min-width: 900px) { .nl--footer .nl__inner { grid-template-columns: minmax(0, 1fr) minmax(0, 480px); gap: 48px; } }
+</style>

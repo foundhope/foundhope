@@ -9,9 +9,8 @@ const s = await getSettings();
 const xmas = await getChristmas();
 const ordersEmail = xmas.ordersEmail ?? 'orders@foundhope.store';
 const updated = '4 October 2026';
-// If Found Hope is a limited company, add the company name and number here,
-// e.g. 'Found Hope is the trading name of Example Ltd (company number 01234567).'
-const legalLine = '';
+// Company details, as registered at Companies House.
+const legalLine = 'Found Hope is the trading name of Found Hope Limited, registered in England and Wales, company number 12025322, with its registered office at the address above.';
 ---
 <Layout title="Privacy and cookies" description="How Found Hope uses your personal information and cookies, and your rights.">
   <article class="legal">

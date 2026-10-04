@@ -1,10 +1,12 @@
 ---
 import Icon from './Icon.astro';
+import Newsletter from './Newsletter.astro';
 import { getSettings } from '../lib/content';
 const s = await getSettings();
 const year = new Date().getFullYear();
 ---
 <footer class="site-footer">
+  {!Astro.props.hideNewsletter && <div class="wrap"><Newsletter variant="footer" /></div>}
   <div class="wrap site-footer__grid">
     <div class="site-footer__contact">
       <span class="caps site-footer__name">{s.name}</span>
@@ -42,7 +44,7 @@ const year = new Date().getFullYear();
       <a href="/journal">Journal</a>
       <a href="/privacy">Privacy and cookies</a>
       <button type="button" class="site-footer__cookies" data-cookie-settings>Cookie settings</button>
-      <span class="site-footer__copy">© {s.name} {year}</span>
+      <span class="site-footer__copy">© {s.company.name} {year}<br />Registered in {s.company.registeredIn}, <span class="nowrap">company no. {s.company.number}</span><br />{s.address.street}, {s.address.city} {s.address.postcode}</span>
     </nav>
   </div>
 </footer>
@@ -68,6 +70,7 @@ const year = new Date().getFullYear();
   .site-footer__coords { font-size: 12px; letter-spacing: 0.08em; color: #a9a59d; margin-top: 10px; }
   .site-footer__nav { display: flex; flex-direction: column; gap: 8px; }
   .site-footer__copy { margin-top: 24px; font-size: 14px; color: #a9a59d; }
+  .nowrap { white-space: nowrap; }
 
   @media (min-width: 900px) {
     .site-footer__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
