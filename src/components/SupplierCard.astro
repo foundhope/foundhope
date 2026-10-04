@@ -1,0 +1,46 @@
+---
+// One supplier card: used on Home, the Suppliers page and "More of our suppliers".
+import Photo from './Photo.astro';
+import type { Supplier } from '../lib/content';
+
+interface Props {
+  supplier: Supplier;
+  tags?: boolean;   // show "Served here" / "Take home"
+  compact?: boolean;
+}
+const { supplier: sp, tags = false, compact = false } = Astro.props;
+const meta = [sp.type, sp.from].filter(Boolean).join(' · ');
+---
+<a href={`/suppliers/${sp.slug}`} class:list={['supplier', { 'supplier--compact': compact }]}>
+  <span class="supplier__media">
+    {sp.image && <Photo src={sp.image} widths={[400, 720]} sizes="(min-width: 900px) 360px, 100vw" />}
+  </span>
+  <span class="supplier__body">
+    {meta && <span class="caps supplier__meta">{meta}</span>}
+    <span class="serif supplier__name">{sp.name}</span>
+    {!compact && sp.teaser && <span class="supplier__teaser">{sp.teaser}</span>}
+    {tags && (sp.servedHere || sp.takeHome) && (
+      <span class="supplier__tags">
+        {sp.servedHere && <span class="caps tag">Served here</span>}
+        {sp.takeHome && <span class="caps tag">Take home</span>}
+      </span>
+    )}
+  </span>
+</a>
+
+<style>
+  .supplier { height: 100%; display: flex; flex-direction: column; background: #fff; color: var(--ink); text-decoration: none; }
+  .supplier:hover { color: var(--ink); }
+  .supplier:hover .supplier__name { text-decoration: underline; text-underline-offset: 4px; }
+  .supplier__media { display: block; height: 240px; background: var(--stone-2); overflow: hidden; }
+  .supplier__media :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .supplier__body { flex-grow: 1; padding: 26px 26px 30px; display: flex; flex-direction: column; gap: 10px; }
+  .supplier__meta { font-size: 12px; color: var(--muted); }
+  .supplier__name { font-size: 32px; }
+  .supplier__teaser { font-size: 16px; line-height: 1.5; color: #3a3935; }
+  .supplier__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+  .tag { font-size: 11px; padding: 6px 10px; border: 1.5px solid var(--ink); }
+  .supplier--compact .supplier__media { height: 180px; }
+  .supplier--compact .supplier__body { padding: 20px 22px 24px; gap: 6px; }
+  .supplier--compact .supplier__name { font-size: 28px; }
+</style>

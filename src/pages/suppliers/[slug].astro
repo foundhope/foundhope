@@ -1,15 +1,160 @@
 ---
-// Placeholder supplier pages until the real ones are built from the mockup.
+// One page per supplier. Everything comes from their entry in Sanity.
+// Sections without content (quote, story, products) don't show.
 import Layout from '../../layouts/Layout.astro';
-import ComingSoon from '../../components/ComingSoon.astro';
-import { getSuppliers } from '../../lib/content';
+import Photo from '../../components/Photo.astro';
+import SupplierCard from '../../components/SupplierCard.astro';
+import { getSuppliers, money, type Supplier } from '../../lib/content';
 
 export async function getStaticPaths() {
-  return (await getSuppliers()).map((s) => ({ params: { slug: s.slug }, props: { supplier: s } }));
+  const all = await getSuppliers();
+  return all.map((s, i) => {
+    // "More of our suppliers": the next 3 in order, wrapping round.
+    const others = all.filter((o) => o.slug !== s.slug);
+    const start = i % Math.max(others.length, 1);
+    const more = [...others.slice(start), ...others.slice(0, start)].slice(0, 3);
+    return { params: { slug: s.slug }, props: { supplier: s, more } };
+  });
 }
 
-const { supplier } = Astro.props;
+const { supplier: sp, more } = Astro.props as { supplier: Supplier; more: Supplier[] };
+const meta = [sp.type, sp.from].filter(Boolean).join(' · ');
+const shortName = sp.name.replace(/\s+(Bakery|Coffee|Wines|London|Farmers)$/i, '');
+const siteLabel = sp.website ? sp.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : '';
+const description = [sp.teaser, sp.about[0]].filter(Boolean).join(' ').slice(0, 200) || `${sp.name}, one of our suppliers.`;
 ---
-<Layout title={supplier.name} noindex>
-  <ComingSoon title={supplier.name} note={`${supplier.teaser} Their full page is on its way.`} />
+<Layout title={`${sp.name} · Our suppliers`} description={description}>
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <div class="wrap crumbs__inner">
+      <a href="/suppliers">Suppliers</a><span aria-hidden="true">/</span><span aria-current="page">{sp.name}</span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="split sphero">
+    <div class="split__media">
+      {sp.image && <Photo src={sp.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" loading="eager" fetchpriority="high" />}
+    </div>
+    <div class="split__body">
+      {meta && <span class="caps eyebrow">{meta}</span>}
+      <h1 class="serif sphero__title">{sp.name}</h1>
+      {sp.teaser && <p class="sphero__teaser">{sp.teaser}</p>}
+      {(sp.servedHere || sp.takeHome) && (
+        <p class="tags">
+          {sp.servedHere && <span class="caps tag">Served here</span>}
+          {sp.takeHome && <span class="caps tag">Take home</span>}
+        </p>
+      )}
+      {sp.website && <a href={sp.website} class="sphero__site" rel="noopener" target="_blank">{siteLabel}</a>}
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  {sp.about.length > 0 && (
+    <section class="about">
+      <div class="wrap two">
+        <h2 class="serif h-big">About <em>{shortName}</em></h2>
+        <div class="prose">{sp.about.map((p) => <p>{p}</p>)}</div>
+      </div>
+    </section>
+  )}
+
+  <!-- WHY WE WORK WITH THEM -->
+  {(sp.quote || sp.story.length > 0) && (
+    <section class="why">
+      <div class="wrap two">
+        <div class="why__head">
+          <span class="caps eyebrow">Why we work with them</span>
+          {sp.quote && (
+            <figure class="why__quote">
+              <blockquote class="serif">{sp.quote}</blockquote>
+              <figcaption class="caps">{sp.quoteBy}</figcaption>
+            </figure>
+          )}
+        </div>
+        <div class="prose">{sp.story.map((p) => <p>{p}</p>)}</div>
+      </div>
+    </section>
+  )}
+
+  <!-- IN THE SHOP NOW -->
+  {sp.products.length > 0 && (
+    <section class="instore">
+      <div class="wrap">
+        <h2 class="caps instore__title">In the shop now</h2>
+        <ul class="instore__grid">
+          {sp.products.map((p) => (
+            <li class="item">
+              <span class="item__media">{p.image && <Photo src={p.image} widths={[400, 700]} sizes="(min-width: 1000px) 360px, 100vw" />}</span>
+              <span class="item__top">
+                <span class="item__name">{p.name}</span>
+                {p.price != null && <span class="mono item__price">{money(p.price)}</span>}
+              </span>
+              {p.detail && <span class="item__detail">{p.detail}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- MORE SUPPLIERS -->
+  {more.length > 0 && (
+    <section class="more">
+      <div class="wrap">
+        <div class="more__head">
+          <h2 class="caps more__title">More of our suppliers</h2>
+          <a href="/suppliers" class="caps text-link">See them all</a>
+        </div>
+        <ul class="more__grid">
+          {more.map((o) => <li><SupplierCard supplier={o} compact /></li>)}
+        </ul>
+      </div>
+    </section>
+  )}
 </Layout>
+
+<style>
+  .crumbs { background: var(--stone); font-size: 14px; }
+  .crumbs__inner { min-height: 56px; display: flex; align-items: center; gap: 10px; }
+  .crumbs a { text-underline-offset: 4px; }
+  .crumbs span { color: var(--muted); }
+  .crumbs [aria-current] { color: #3a3935; }
+
+  .sphero__title { font-size: clamp(54px, 6vw, 80px); line-height: 0.95; }
+  .sphero__teaser { font-size: 20px; line-height: 1.55; color: var(--ink-soft); max-width: 26em; }
+  .sphero__site { align-self: flex-start; font-size: 16px; text-underline-offset: 4px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: 11px; padding: 8px 12px; border: 1.5px solid var(--ink); }
+  @media (min-width: 900px) { .sphero .split__media { min-height: 620px; } }
+
+  .two { display: grid; gap: 32px; }
+  @media (min-width: 1000px) { .two { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 100px; align-items: start; } }
+  .prose { display: flex; flex-direction: column; gap: 20px; font-size: 19px; line-height: 1.65; color: var(--ink-soft); }
+
+  .about { padding-block: var(--section); }
+
+  .why { background: var(--stone-2); padding-block: var(--section); }
+  .why__head { display: flex; flex-direction: column; gap: 22px; }
+  .why__quote { margin: 0; display: flex; flex-direction: column; gap: 18px; }
+  .why__quote blockquote { margin: 0; font-size: clamp(32px, 3.4vw, 44px); line-height: 1.1; }
+  .why__quote blockquote::before { content: '“'; }
+  .why__quote blockquote::after { content: '”'; }
+  .why__quote figcaption { font-size: 13px; color: #3a3935; }
+
+  .instore { padding-block: var(--section); }
+  .instore__title { font-size: clamp(19px, 2.4vw, 24px); margin-bottom: 40px; }
+  .instore__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 32px 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+  .item { display: flex; flex-direction: column; gap: 10px; }
+  .item__media { display: block; height: 260px; background: var(--stone); overflow: hidden; }
+  .item__media :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .item__top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .item__name { font-size: 18px; font-weight: 700; }
+  .item__price { font-size: 15px; white-space: nowrap; }
+  .item__detail { font-size: 16px; color: #3a3935; }
+
+  .more { background: var(--stone); padding-block: clamp(64px, 8vw, 90px); }
+  .more__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 36px; }
+  .more__title { font-size: clamp(19px, 2.4vw, 24px); }
+  .more__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+</style>

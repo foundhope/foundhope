@@ -44,6 +44,8 @@ export type ShopEvent = {
   showOnHome?: boolean;
 };
 
+export type SupplierProduct = { key: string; name: string; detail: string; price: number | null; image?: SanityImage };
+
 export type Supplier = {
   _id: string;
   name: string;
@@ -56,6 +58,11 @@ export type Supplier = {
   servedHere?: boolean;
   takeHome?: boolean;
   onHome?: boolean;
+  about: string[];
+  quote: string;
+  quoteBy: string;
+  story: string[];
+  products: SupplierProduct[];
 };
 
 type SanityItem = {
@@ -78,8 +85,9 @@ const QUERY = `{
   "hours": *[_id == "openingHours"][0],
   "christmas": *[_id == "christmasSettings"][0]{ ..., heroImage${IMAGE}, truffleImage${IMAGE} },
   "categories": *[_type == "christmasCategory"] | order(order asc) { _id, title, source, blurb, image${IMAGE}, items },
-  "suppliers": *[_type == "supplier" && defined(slug.current)] | order(order asc) {
-    _id, name, "slug": slug.current, type, from, teaser, image${IMAGE}, website, servedHere, takeHome, onHome
+  "suppliers": *[_type == "supplier" && defined(slug.current) && show != false] | order(order asc) {
+    _id, name, "slug": slug.current, type, from, teaser, image${IMAGE}, website, servedHere, takeHome, onHome,
+    about, quote, quoteBy, story, products[]{ ..., image${IMAGE} }
   },
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, showOnHome
@@ -88,7 +96,7 @@ const QUERY = `{
     ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, wineImage${IMAGE},
     kitchenBoard{ ..., asset->{ _id, _createdAt, metadata { dimensions, lqip } } },
     kitchenPdf{ asset->{ url, _createdAt, originalFilename } },
-    counters[]{ ..., image${IMAGE}, supplier->{ name, "slug": slug.current } },
+    counters[]{ ..., image${IMAGE}, supplier->{ name, "slug": slug.current, show } },
     picks[]{ ..., image${IMAGE} },
     products[]{ ..., image${IMAGE} }
   }
@@ -183,8 +191,20 @@ export const getReviews = () => reviews;
 
 // ---------- Suppliers ----------
 
+// Text fields split into paragraphs on blank lines.
+const paras = (t?: string | null) => (t ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+
 export async function getSuppliers(): Promise<Supplier[]> {
-  return (await load()).suppliers ?? [];
+  return ((await load()).suppliers ?? []).map((s: any) => ({
+    ...s,
+    about: paras(s.about),
+    quote: (s.quote ?? '').trim(),
+    quoteBy: s.quoteBy || 'Nick, Found Hope',
+    story: paras(s.story),
+    products: ((s.products ?? []) as any[])
+      .filter((p) => p.available !== false)
+      .map((p) => ({ key: p._key, name: p.name, detail: p.detail ?? '', price: p.price != null ? pence(p.price) : null, image: p.image })),
+  }));
 }
 export async function getHomeSuppliers() {
   return (await getSuppliers()).filter((s) => s.onHome).slice(0, 3);
@@ -290,7 +310,7 @@ export async function getFoodAndDrink() {
       title: c.title as string,
       text: (c.text ?? '') as string,
       image: c.image as SanityImage | undefined,
-      supplier: c.supplier?.slug ? { name: c.supplier.name as string, slug: c.supplier.slug as string } : null,
+      supplier: c.supplier?.slug && c.supplier.show !== false ? { name: c.supplier.name as string, slug: c.supplier.slug as string } : null,
     })),
     wine: {
       text: (f.wineText ?? '') as string,

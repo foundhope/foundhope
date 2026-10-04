@@ -48,7 +48,7 @@ Go to **/studio** on the site (or `npm run studio` locally), sign in, edit, pres
 | Food & Drink page | Every section of /food-and-drink: text, photos, coffee and food menus, the counters, wine picks, Made by us |
 | Christmas > Dates, deposit and truffles | Open or closed, cut-off dates, collection days, deposit %, main photo, truffles |
 | Christmas > The Christmas list | Sections, items, prices and sizes. "Available" off shows Sold out |
-| Suppliers | Supplier cards on the home page and their pages |
+| Suppliers | The Suppliers page, each supplier's own page (about, a line from Nick, how we work together, what's in the shop), and the 3 cards on the home page. "Show on the website" off hides them and their page |
 
 **Publishing rebuilds the site** through a Sanity webhook that calls the Cloudflare deploy hook. Changes are live about a minute later. The site also rebuilds itself every night (`triggers` in `wrangler.jsonc`, using the `DEPLOY_HOOK_URL` secret).
 

@@ -5,7 +5,6 @@ import sitemap from '@astrojs/sitemap';
 // Pages that exist only as "coming soon" placeholders stay out of the sitemap
 // until they're built. Remove a path from this list when its page goes live.
 const placeholderPages = [
-  '/suppliers',
   '/journal',
   '/visit',
   '/privacy',
