@@ -66,7 +66,7 @@ export function londonToday(now = new Date()) {
 export const money = (p: number) => `£${(p / 100).toFixed(2).replace(/\.00$/, '')}`;
 
 export function lineText(l: OrderLine) {
-  return `${l.qty} x ${l.name}${l.size ? ` (${l.size})` : ''}: ${l.approx ? 'approx ' : ''}${money(l.unit * l.qty)}`;
+  return `${l.qty} x ${l.name}${l.size ? `, ${l.size}` : ''}: ${l.approx ? 'approx ' : ''}${money(l.unit * l.qty)}`;
 }
 
 export function buildOrder(

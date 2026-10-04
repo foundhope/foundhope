@@ -48,7 +48,7 @@ const s = await getSettings();
           lead.textContent = "Your payment hasn't come through yet. If you've just paid, refresh in a minute. If not, your order isn't placed.";
           return;
         }
-        if (o.firstName) $('[data-name]').textContent = `, ${o.firstName}`;
+        if (o.firstName) $('[data-name]').textContent = `, ${o.firstName.charAt(0).toUpperCase()}${o.firstName.slice(1)}`;
         lead.textContent = 'Your Christmas order is placed and your deposit is paid.';
         $('[data-collection]').textContent = o.collection;
         $('[data-deposit]').textContent = o.deposit;

@@ -392,7 +392,7 @@ const steps = [
       const body = [
         'Christmas order',
         '',
-        ...ls.map((l) => `${l.qty} x ${l.item.name}${l.tier && l.item.tiers!.length > 1 ? ` (${l.tier.label})` : ''}: ${l.tier ? 'approx ' : ''}${money(l.unit * l.qty)}`),
+        ...ls.map((l) => `${l.qty} x ${l.item.name}${l.tier && l.item.tiers!.length > 1 ? `, ${l.tier.label}` : ''}: ${l.tier ? 'approx ' : ''}${money(l.unit * l.qty)}`),
         '',
         `Approx total: ${money(total)}`,
         `Deposit (${Math.round(data.depositRate * 100)}%): ${money(deposit)}`,
