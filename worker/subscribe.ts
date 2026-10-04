@@ -22,7 +22,10 @@ export async function subscribe(body: any, env: SubscribeEnv): Promise<Result> {
   if (body?.website) return { status: 200, body: { ok: true, message: 'Thanks! Check your inbox to confirm.' } };
 
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase().slice(0, 120) : '';
-  const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 60) : '';
+  const clean = (v: unknown) => (typeof v === 'string' ? v.trim().slice(0, 60) : '');
+  const name = clean(body?.name);
+  const surname = clean(body?.surname);
+  if (!name || !surname) return { status: 400, body: { error: 'Please add your first name and surname.' } };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { status: 400, body: { error: 'Please check your email address.' } };
 
   const key = env.MAILCHIMP_API_KEY;
@@ -51,7 +54,7 @@ export async function subscribe(body: any, env: SubscribeEnv): Promise<Result> {
       body: JSON.stringify({
         email_address: email,
         status_if_new: 'pending',
-        merge_fields: name ? { FNAME: name } : {},
+        merge_fields: { FNAME: name, LNAME: surname },
       }),
     });
     const data: any = await res.json();

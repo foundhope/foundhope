@@ -17,12 +17,14 @@ const id = `nl-${variant}`;
     </div>
     <form class="nl__form" data-newsletter novalidate data-fallback={`mailto:${s.email}?subject=${encodeURIComponent('Please add me to the mailing list')}`}>
       <div class="nl__fields">
-        {variant === 'band' && (
-          <label class="nl__field">
-            <span class="visually-hidden">First name (optional)</span>
-            <input name="name" autocomplete="given-name" placeholder="First name (optional)" />
-          </label>
-        )}
+        <label class="nl__field nl__field--half">
+          <span class="visually-hidden">First name</span>
+          <input name="name" autocomplete="given-name" placeholder="First name" required />
+        </label>
+        <label class="nl__field nl__field--half">
+          <span class="visually-hidden">Surname</span>
+          <input name="surname" autocomplete="family-name" placeholder="Surname" required />
+        </label>
         <label class="nl__field nl__field--email">
           <span class="visually-hidden">Email address</span>
           <input name="email" type="email" autocomplete="email" placeholder="Your email" required />
@@ -46,7 +48,15 @@ const id = `nl-${variant}`;
       const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
       const fd = new FormData(form);
       const email = String(fd.get('email') || '').trim();
+      const name = String(fd.get('name') || '').trim();
+      const surname = String(fd.get('surname') || '').trim();
       msg.classList.remove('is-error', 'is-ok');
+      if (!name || !surname) {
+        msg.textContent = 'Please add your first name and surname.';
+        msg.classList.add('is-error');
+        form.querySelector<HTMLInputElement>(name ? 'input[name="surname"]' : 'input[name="name"]')!.focus();
+        return;
+      }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         msg.textContent = 'Please check your email address.';
         msg.classList.add('is-error');
@@ -60,7 +70,7 @@ const id = `nl-${variant}`;
         const res = await fetch('/api/subscribe', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ email, name: fd.get('name') || '', website: fd.get('website') || '' }),
+          body: JSON.stringify({ email, name, surname, website: fd.get('website') || '' }),
         });
         const out = await res.json().catch(() => ({}));
         if (res.ok && out.ok) {
@@ -91,7 +101,9 @@ const id = `nl-${variant}`;
   .nl__trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .nl__fields { display: flex; flex-wrap: wrap; gap: 10px; }
   .nl__fields[hidden] { display: none; }
-  .nl__field { flex: 1 1 200px; display: flex; }
+  .nl__field { flex: 1 1 100%; display: flex; }
+  .nl__field--half { flex: 1 1 calc(50% - 5px); min-width: 140px; }
+  .nl__field--email { flex: 1 1 220px; }
   .nl__field input {
     width: 100%; min-height: 52px; padding: 0 16px; font: inherit; font-size: 16px;
     border: 1.5px solid var(--ink); background: #fff; color: var(--ink); border-radius: 0;
