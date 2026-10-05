@@ -20,14 +20,6 @@ The website updates by itself about **a minute** after you press Publish. If you
 
 ## Everyday jobs
 
-### Today's food menu
-
-1. **Food & Drink page** → **Kitchen** tab.
-2. Under **Photo of the printed menu**, tap the photo and choose **Upload**. Take the photo flat, in good light. You can also upload the PDF under **Or the menu as a PDF**.
-3. Press **Publish**.
-
-The website shows the day you uploaded it, so customers know it's current.
-
 ### Close early, or open on a bank holiday
 
 1. **Opening hours** → **Special days** → **Add item**.

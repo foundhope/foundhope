@@ -95,8 +95,6 @@ const QUERY = `{
   "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
     ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, wineImage${IMAGE},
-    kitchenBoard{ ..., asset->{ _id, _createdAt, metadata { dimensions, lqip } } },
-    kitchenPdf{ asset->{ url, _createdAt, originalFilename } },
     counters[]{ ..., image${IMAGE}, supplier->{ name, "slug": slug.current, show } },
     picks[]{ ..., image${IMAGE} },
     products[]{ ..., image${IMAGE} }
@@ -312,13 +310,6 @@ export async function getFoodAndDrink() {
       text: (f.kitchenText ?? '') as string,
       hours: (f.kitchenHours ?? '') as string,
       image: f.kitchenImage as SanityImage | undefined,
-      printed: f.kitchenMode !== 'list',
-      board: f.kitchenMode !== 'list' && f.kitchenBoard?.asset ? ({ ...f.kitchenBoard, alt: "Today's food menu" } as SanityImage) : null,
-      pdf: f.kitchenMode !== 'list' && f.kitchenPdf?.asset?.url ? (f.kitchenPdf.asset.url as string) : null,
-      // Newest upload of the two, shown as "Menu updated ..."
-      updated: f.kitchenMode !== 'list'
-        ? ([f.kitchenBoard?.asset?._createdAt, f.kitchenPdf?.asset?._createdAt].filter(Boolean).sort().at(-1) as string | undefined) ?? null
-        : null,
       menu: menu(f.kitchenMenu),
     },
     counters: ((f.counters ?? []) as any[]).map((c) => ({

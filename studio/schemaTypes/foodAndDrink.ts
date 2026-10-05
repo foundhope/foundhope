@@ -66,45 +66,12 @@ export const foodAndDrink = defineType({
     defineField({ name: 'kitchenHours', title: 'When food is served', type: 'string', group: 'kitchen', description: 'e.g. "Breakfast till 11:30, lunch 12 till 3"' }),
     { ...photoField('kitchenImage', 'Kitchen photo'), group: 'kitchen' },
     defineField({
-      name: 'kitchenMode',
-      title: 'How to show the menu',
-      type: 'string',
-      group: 'kitchen',
-      options: {
-        list: [
-          { title: 'Upload the printed menu (photo or PDF)', value: 'board' },
-          { title: 'Type the menu in', value: 'list' },
-        ],
-        layout: 'radio',
-      },
-      initialValue: 'board',
-    }),
-    defineField({
       name: 'kitchenMenu',
       title: 'Food menu',
       type: 'array',
       of: [menuItem(true)],
       group: 'kitchen',
-      hidden: ({ document }) => document?.kitchenMode === 'board',
-    }),
-    // The printed menu: a phone photo of the printout, a PDF, or both.
-    // The page shows the day it was uploaded, so customers know it's current.
-    defineField({
-      name: 'kitchenBoard',
-      title: 'Photo of the printed menu',
-      type: 'image',
-      group: 'kitchen',
-      description: 'Lay the printout flat in good light and take a photo straight on. Upload a new one whenever the menu changes, then press Publish.',
-      hidden: ({ document }) => document?.kitchenMode !== 'board',
-    }),
-    defineField({
-      name: 'kitchenPdf',
-      title: 'Or the menu as a PDF',
-      type: 'file',
-      group: 'kitchen',
-      options: { accept: 'application/pdf' },
-      description: 'The file you print from. Shows as a "See the full menu" button.',
-      hidden: ({ document }) => document?.kitchenMode !== 'board',
+      description: 'Optional. Leave it empty and the website says the menu changes daily, pop in to see what\'s on.',
     }),
 
     // Counters

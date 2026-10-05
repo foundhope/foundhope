@@ -17,10 +17,6 @@ const jump = [
   ...(fd.madeByUs.products.length ? [{ href: '#made-by-us', label: 'Made by us' }] : []),
 ];
 
-// e.g. "Monday 5 October"
-const menuDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/London' });
-
 const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten free' };
 ---
 <Layout
@@ -78,19 +74,9 @@ const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten
       <h2 id="food-title" class="serif h-big" set:html={emphasis('From the *kitchen*')} />
       {fd.kitchen.text && <p class="lead">{fd.kitchen.text}</p>}
       {fd.kitchen.hours && <p class="caps served">{fd.kitchen.hours}</p>}
-      {fd.kitchen.printed ? (
-        <div class="printed">
-          {fd.kitchen.updated && <span class="caps printed__date">Menu updated {menuDate(fd.kitchen.updated)}</span>}
-          {fd.kitchen.board && (
-            fd.kitchen.pdf
-              ? <a href={fd.kitchen.pdf} target="_blank" rel="noopener" class="printed__img-link"><Photo src={fd.kitchen.board} widths={[480, 800, 1200]} sizes="(min-width: 900px) 40vw, 100vw" class="board" /></a>
-              : <Photo src={fd.kitchen.board} widths={[480, 800, 1200, 1600]} sizes="(min-width: 900px) 40vw, 100vw" class="board" />
-          )}
-          {fd.kitchen.pdf && <a href={fd.kitchen.pdf} target="_blank" rel="noopener" class="btn printed__btn">See the full menu</a>}
-          {!fd.kitchen.board && !fd.kitchen.pdf && <p class="smallprint">The menu changes every day. Pop in to see what's on.</p>}
-          {(fd.kitchen.board || fd.kitchen.pdf) && <p class="smallprint">Allergies? Ask us before you order.</p>}
-        </div>
-      ) : fd.kitchen.menu.length > 0 && (
+      {fd.kitchen.menu.length === 0 ? (
+        <p class="smallprint">The menu changes every day. Pop in to see what's on. Allergies? Ask us before you order.</p>
+      ) : (
         <>
           <ul class="menu">
             {fd.kitchen.menu.map((m) => (
@@ -257,11 +243,6 @@ const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten
   /* Kitchen */
   .kitchen { background: var(--stone); }
   .served { font-size: 13px; color: var(--accent-text); }
-  .printed { display: flex; flex-direction: column; gap: 14px; max-width: 520px; }
-  .printed__date { font-size: 12px; color: var(--muted); }
-  .printed__img-link { display: block; }
-  .printed__btn { align-self: flex-start; }
-  .kitchen :global(.board) { border: 1px solid var(--rule); background: #fff;  width: 100%; max-width: 520px; height: auto; }
   @media (min-width: 900px) {
     .split--flip .split__media { order: 2; }
   }
