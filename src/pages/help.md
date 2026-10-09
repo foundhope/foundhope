@@ -54,6 +54,8 @@ Turn it off again the same way when you're done.
 
 Past events disappear from the website by themselves.
 
+**Selling tickets:** in the event, turn on **Sell tickets on the website**, then add the **Ticket price** and, if places are limited, **How many tickets in total**. The event shows a **Buy tickets** button and customers pay by card on Stripe. Each ticket sale is a payment in Stripe, with the event, number of tickets, name and phone on it. Refund from Stripe the same way as a Christmas deposit.
+
 ### Johan's wine picks
 
 1. **Food & Drink page** → **Wine** tab.
@@ -92,6 +94,9 @@ It shows "Sold out" on the website and can't be ordered.
 **Christmas** → **Dates, deposit and truffles**. Here you can change:
 
 - **Christmas orders are open**: switch the whole Christmas page on or off
+- **Online ordering is open**: off shows "Order online coming soon" and hides the order form and prices. Turn on once the new list and prices are in
+- **Turkey sandwich** tab: the showcase section (text, when it's on, optional photo). Not an order item
+- **Truffles**: add the price per box and the Add to basket button appears
 - **Last day to order online**: the order form closes itself after this day
 - **Last day to cancel for a full refund**
 - **Last day to order in the shop**

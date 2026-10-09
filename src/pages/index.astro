@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import EventCard from '../components/EventCard.astro';
 import SupplierCard from '../components/SupplierCard.astro';
 import Newsletter from '../components/Newsletter.astro';
+import OpenNow from '../components/OpenNow.astro';
 import {
   getHome, getSettings, getHours, getHomeSuppliers, getReviews, getChristmas, getUpcomingEvents, img, emphasis,
 } from '../lib/content';
@@ -15,13 +16,14 @@ const suppliers = await getHomeSuppliers();
 const reviews = getReviews();
 const xmas = await getChristmas();
 const homeEvents = (await getUpcomingEvents()).filter((e) => e.showOnHome).slice(0, 2);
-const { hero, inTheShop, cups, ourStory, visit } = home;
+const { hero, inTheShop, wine, cups, ourStory, visit } = home;
 ---
 <Layout hideNewsletter>
   <!-- HERO -->
   <section class="hero">
     <div class="wrap hero__grid">
       <div class="hero__text">
+        <OpenNow />
         <span class="caps hero__label">{hero.label}</span>
         <h1 class="serif hero__title" set:html={emphasis(hero.headline)} />
         <span class="hero__rule" aria-hidden="true"></span>
@@ -60,6 +62,22 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
           </li>
         ))}
       </ul>
+    </div>
+  </section>
+
+  <!-- WINE AND SPIRITS -->
+  <section class="split wine" aria-labelledby="wine-title">
+    <div class="split__media">
+      <Image src={img(wine.image)} alt={wine.imageAlt} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />
+    </div>
+    <div class="split__body wine__body">
+      <span class="caps wine__label">{wine.label}</span>
+      <h2 id="wine-title" class="serif h-big" set:html={emphasis(wine.headline)} />
+      <p class="body-text">{wine.text}</p>
+      <ul class="chips chips--light">
+        {wine.items.map((c) => <li class="caps">{c}</li>)}
+      </ul>
+      <a href="/food-and-drink#wine" class="btn btn--accent wine__btn">{wine.linkText}</a>
     </div>
   </section>
 
@@ -147,15 +165,18 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
         <span class="caps xmas__label">Christmas {xmas.year}</span>
         <h2 id="xmas-title" class="serif h-big">Christmas, <em>sorted</em></h2>
         <p class="body-text">
-          {xmas.intro} Order online with a {xmas.depositPercent}% deposit and pay the rest when you collect on {xmas.collectionText}.
-          Full refund if you cancel by {xmas.refundCutoffText}.
+          {xmas.comingSoon
+            ? `${xmas.intro} Order online is coming soon. Collect on ${xmas.collectionText}.`
+            : `${xmas.intro} Order online with a ${xmas.depositPercent}% deposit and pay the rest when you collect on ${xmas.collectionText}. Full refund if you cancel by ${xmas.refundCutoffText}.`}
         </p>
         <div class="xmas__cta">
-          <a href="/christmas" class="btn btn--accent">Order for Christmas</a>
+          <a href="/christmas" class="btn btn--accent">{xmas.comingSoon ? 'See Christmas' : 'Order for Christmas'}</a>
           <span class="xmas__note">
-            {xmas.onlineOpen
-              ? `Order online by ${xmas.onlineCutoffText} · in the shop until ${xmas.inShopCutoffText}`
-              : `Online orders are closed. Order in the shop until ${xmas.inShopCutoffText}`}
+            {xmas.comingSoon
+              ? 'Order online coming soon'
+              : xmas.onlineOpen
+                ? `Order online by ${xmas.onlineCutoffText} · in the shop until ${xmas.inShopCutoffText}`
+                : `Online orders are closed. Order in the shop until ${xmas.inShopCutoffText}`}
           </span>
         </div>
       </div>
@@ -224,6 +245,7 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
   .hero__grid { display: grid; gap: 32px; padding-block: 40px 56px; align-items: center; }
   .hero__text { display: flex; flex-direction: column; gap: 22px; }
   .hero__label { font-size: 13px; letter-spacing: 0.22em; }
+  .hero__text :global(.opennow) { margin-bottom: -6px; }
   .hero__title { font-size: clamp(46px, 6.4vw, 68px); max-width: 9.2em; }
   .hero__rule { height: 1px; background: var(--ink); }
   .hero__links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; }
@@ -248,6 +270,16 @@ const { hero, inTheShop, cups, ourStory, visit } = home;
     .shop__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 16px; }
     .shop__img { aspect-ratio: auto; height: 260px; }
     .shop__label { font-size: 14px; }
+  }
+
+  /* Wine and spirits */
+  .wine__body { background: var(--ink); color: #fff; }
+  .wine__body .body-text { color: var(--stone-2); }
+  .wine__label { font-size: 14px; color: #a9c1ff; }
+  .chips--light li { border-color: #fff; }
+  .wine__btn { align-self: flex-start; }
+  @media (min-width: 900px) {
+    .wine .split__media { order: 2; }
   }
 
   /* Cups */

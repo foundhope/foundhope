@@ -1,12 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Photo from '../components/Photo.astro';
-import { getChristmas, getChristmasMenu, getSettings, money, formatDate } from '../lib/content';
+import Newsletter from '../components/Newsletter.astro';
+import { getChristmas, getChristmasMenu, getSettings, money, formatDate, emphasis } from '../lib/content';
 
 const xmas = await getChristmas();
 const categories = xmas.live ? await getChristmasMenu() : [];
 const s = await getSettings();
 const truffles = xmas.truffles;
+const soon = !!xmas.comingSoon;
+// Add to basket for the salted caramel truffles, once ordering is open and a price is set.
+const truffleOrderable = xmas.live && !soon && xmas.onlineOpen && truffles.price != null;
+const truffleName = `Truffle chocolates${truffles.flavours.length === 1 ? `, ${truffles.flavours[0].toLowerCase()}` : ''} (box)`;
+const sandwich = xmas.sandwich;
 
 type Item = Awaited<ReturnType<typeof getChristmasMenu>>[number]['items'][number];
 
@@ -22,9 +28,12 @@ const formData = {
   depositRate: xmas.depositRate,
   ordersEmail: xmas.ordersEmail,
   paymentsLive: xmas.paymentsLive,
-  items: categories.flatMap((c) =>
-    c.items.filter((it) => it.available).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
-  ),
+  items: [
+    ...categories.flatMap((c) =>
+      c.items.filter((it) => it.available).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
+    ),
+    ...(truffleOrderable ? [{ id: 'truffles', name: truffleName, price: truffles.price, tiers: null }] : []),
+  ],
 };
 
 const collectionDays = (xmas.collectionDates ?? []).map((d: string) => ({
@@ -40,6 +49,7 @@ const steps = [
 ];
 ---
 <Layout
+  hideNewsletter={xmas.live && soon}
   title="Christmas orders"
   description={`Order your Christmas turkey, rib of beef, Wellington and more from Found Hope in Hither Green. ${xmas.depositPercent}% deposit online, collect on ${xmas.collectionText}.`}
 >
@@ -64,20 +74,24 @@ const steps = [
           <h1 class="display xhero__title">Christmas at Found Hope</h1>
           <p class="xhero__text">
             {xmas.intro}
-            {xmas.onlineOpen
-              ? ` Order online by ${xmas.onlineCutoffText}, or in the shop until ${xmas.inShopCutoffText}.`
-              : ` Online orders have closed. You can still order in the shop until ${xmas.inShopCutoffText}.`}
+            {soon
+              ? ' Order online is coming soon, as soon as this year\'s list is ready.'
+              : xmas.onlineOpen
+                ? ` Order online by ${xmas.onlineCutoffText}, or in the shop until ${xmas.inShopCutoffText}.`
+                : ` Online orders have closed. You can still order in the shop until ${xmas.inShopCutoffText}.`}
             {` Collect on ${xmas.collectionText}.`}
           </p>
           <div class="xhero__actions">
             {xmas.onlineOpen && <a href="#the-list" class="btn btn--accent">Start your order</a>}
-            <span class="caps xhero__tag">{xmas.depositPercent}% deposit · Full refund if you cancel by {xmas.refundCutoffText}</span>
+            {soon
+              ? <span class="caps xhero__tag">Order online · Coming soon</span>
+              : <span class="caps xhero__tag">{xmas.depositPercent}% deposit · Full refund if you cancel by {xmas.refundCutoffText}</span>}
           </div>
         </div>
       </section>
 
       <!-- HOW IT WORKS -->
-      <section class="steps" aria-labelledby="steps-title">
+      {!soon && <section class="steps" aria-labelledby="steps-title">
         <div class="wrap">
           <h2 id="steps-title" class="visually-hidden">How it works</h2>
           <ol class="steps__list">
@@ -90,15 +104,17 @@ const steps = [
             ))}
           </ol>
         </div>
-      </section>
+      </section>}
 
       <form id="xmas-form" class="order" novalidate>
-        <div class="wrap order__grid">
+        <div class:list={['wrap order__grid', { 'order__grid--single': soon }]}>
           <!-- THE LIST -->
           <section class="list" id="the-list" aria-labelledby="list-title">
             <div class="list__head">
-              <h2 id="list-title" class="display list__title">The Christmas list</h2>
-              <p class="list__note">Meat is priced by weight, so prices are approximate until we weigh your order. We'll confirm the final price before you collect.</p>
+              <h2 id="list-title" class="display list__title">{soon ? 'What\'s coming' : 'The Christmas list'}</h2>
+              {soon
+                ? <p class="list__note">Last year's range, to give you an idea. This year's list and prices are on their way. Order online is coming soon, and we'll shout as soon as it opens.</p>
+                : <p class="list__note">Meat is priced by weight, so prices are approximate until we weigh your order. We'll confirm the final price before you collect.</p>}
             </div>
 
             {categories.map((cat, ci) => (
@@ -121,10 +137,10 @@ const steps = [
                       <li class="item" data-item={it.id} data-cat={cat.id}>
                         <div class="item__text">
                           <span class="item__name">{it.name}</span>
-                          {it.detail && <span class="item__detail">{it.detail}{it.perKg ? ` ${money(it.perKg)}/kg.` : ''}</span>}
+                          {it.detail && <span class="item__detail">{it.detail}{it.perKg && !soon ? ` ${money(it.perKg)}/kg.` : ''}</span>}
                         </div>
-                        <span class="display item__price">{it.available ? priceLabel(it) : 'Sold out'}</span>
-                        {it.available && <div class="item__controls">
+                        {!soon && <span class="display item__price">{it.available ? priceLabel(it) : 'Sold out'}</span>}
+                        {it.available && !soon && <div class="item__controls">
                           {it.tiers && it.tiers.length > 1 && (
                             <label class="item__size">
                               <span class="visually-hidden">Size for {it.name}</span>
@@ -140,7 +156,7 @@ const steps = [
                             <button type="button" class="qty__btn" data-step="1" data-for={it.id} aria-label={`One more ${it.name}`}>+</button>
                           </div>
                         </div>}
-                        <p class="item__error" data-error={it.id} hidden>Choose a size first.</p>
+                        {!soon && <p class="item__error" data-error={it.id} hidden>Choose a size first.</p>}
                       </li>
                     ))}
                   </ul>
@@ -161,15 +177,30 @@ const steps = [
                     <li class="caps truffles__more">+ {truffles.flavourCount - truffles.flavours.length} more coming</li>
                   )}
                 </ul>
-                <p class="truffles__note">
-                  {truffles.price ? `${money(truffles.price)} a box.` : 'Price coming soon.'} Ask for a box in the shop, or add a note to your order.
-                </p>
+                {truffleOrderable ? (
+                  <div class="truffles__buy" data-item="truffles" data-cat="truffles">
+                    <span class="display truffles__price">{money(truffles.price)} a box</span>
+                    <button type="button" class="btn btn--accent truffles__add" data-step="1" data-for="truffles" data-add>Add to basket</button>
+                    <div class="qty qty--dark" data-truffle-qty role="group" aria-label="How many boxes of truffle chocolates" hidden>
+                      <button type="button" class="qty__btn" data-step="-1" data-for="truffles" aria-label="One less box">−</button>
+                      <input type="number" inputmode="numeric" min="0" max="20" value="0" class="qty__input" data-qty="truffles" aria-label="Boxes of truffle chocolates" />
+                      <button type="button" class="qty__btn" data-step="1" data-for="truffles" aria-label="One more box">+</button>
+                    </div>
+                    <p class="item__error" data-error="truffles" hidden></p>
+                  </div>
+                ) : (
+                  <p class="truffles__note">
+                    {soon
+                      ? 'Order online coming soon.'
+                      : truffles.price ? `${money(truffles.price)} a box.` : 'Price coming soon.'} Ask for a box in the shop.
+                  </p>
+                )}
               </div>
             </div>
           </section>
 
           <!-- YOUR ORDER -->
-          <aside class="summary" id="your-order" aria-labelledby="summary-title">
+          {!soon && <aside class="summary" id="your-order" aria-labelledby="summary-title">
             <div class="summary__card">
               <h2 id="summary-title" class="display summary__title">Your order</h2>
               <p class="summary__empty" data-empty>Nothing added yet. Pick from the list.</p>
@@ -228,18 +259,37 @@ const steps = [
                 <p class="summary__closed">Online orders closed on {xmas.onlineCutoffText}. Call us on <a href={`tel:${s.phoneIntl}`}>{s.phone}</a> or pop in by {xmas.inShopCutoffText}.</p>
               )}
             </div>
-          </aside>
+          </aside>}
         </div>
 
         <!-- Phone: running deposit, always in view -->
-        <div class="bar" data-bar hidden>
+        {!soon && <div class="bar" data-bar hidden>
           <span><span class="caps bar__label">Deposit</span> <strong data-bar-deposit>£0</strong> <span class="bar__count" data-bar-count></span></span>
           <a href="#your-order" class="btn btn--accent bar__btn">Review order</a>
-        </div>
+        </div>}
       </form>
 
+      <!-- TURKEY SANDWICH: a showcase, no ordering -->
+      {sandwich.on && (
+        <section class:list={['sandwich', { 'sandwich--photo': !!sandwich.image }]} aria-labelledby="sandwich-title">
+          {sandwich.image && (
+            <div class="sandwich__media">
+              <Photo src={sandwich.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />
+            </div>
+          )}
+          <div class="sandwich__body">
+            <span class="caps sandwich__label">Only at Christmas</span>
+            <h2 id="sandwich-title" class="serif sandwich__title" set:html={emphasis(sandwich.title)} />
+            {sandwich.text.split(/\n\s*\n/).map((p) => <p class="sandwich__text">{p}</p>)}
+            {sandwich.when && <p class="caps sandwich__when">{sandwich.when}</p>}
+          </div>
+        </section>
+      )}
+
+      {soon && <Newsletter />}
+
       <!-- DEPOSIT TERMS -->
-      <section class="terms" id="deposit-terms" aria-labelledby="terms-title">
+      {!soon && <section class="terms" id="deposit-terms" aria-labelledby="terms-title">
         <div class="wrap terms__grid">
           <h2 id="terms-title" class="serif terms__title">How deposits <em>work</em></h2>
           <ul class="terms__list">
@@ -253,9 +303,9 @@ const steps = [
             <li>Please collect on your chosen day. If you can't make it, let us know as soon as possible.</li>
           </ul>
         </div>
-      </section>
+      </section>}
 
-      <script type="application/json" id="xmas-data" set:html={JSON.stringify(formData)} />
+      {!soon && <script type="application/json" id="xmas-data" set:html={JSON.stringify(formData)} />}
     </>
   )}
 </Layout>
@@ -308,6 +358,11 @@ const steps = [
         price.textContent = `${l.tier ? 'approx ' : ''}${money(l.unit * l.qty)}`;
         li.append(name, price);
         list.append(li);
+      }
+      for (const el of $$<HTMLElement>('[data-truffle-qty]')) {
+        const n = parseInt(qtyInput('truffles').value, 10) || 0;
+        el.hidden = n < 1;
+        $<HTMLElement>('[data-add]')!.hidden = n >= 1;
       }
       const has = ls.length > 0;
       $('[data-empty]')!.toggleAttribute('hidden', has);
@@ -511,8 +566,9 @@ const steps = [
   /* Order layout */
   .order { background: var(--stone); padding-block: var(--section); }
   .order__grid { display: grid; gap: 40px; align-items: start; }
+  .order__grid--single { max-width: 880px; }
   @media (min-width: 1000px) {
-    .order__grid { grid-template-columns: minmax(0, 1fr) 380px; gap: 56px; }
+    .order__grid:not(.order__grid--single) { grid-template-columns: minmax(0, 1fr) 380px; gap: 56px; }
     .summary { position: sticky; top: 24px; }
   }
 
@@ -582,6 +638,32 @@ const steps = [
   @media (min-width: 700px) {
     .truffles { grid-template-columns: 280px minmax(0, 1fr); }
     .truffles__img { height: 100%; min-height: 280px; }
+  }
+
+  .truffles__buy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+  .truffles__price { font-size: 22px; }
+  .truffles__add { border: 0; cursor: pointer; font-family: inherit; }
+  .truffles__add[hidden], .qty[hidden] { display: none; }
+  .qty--dark { border-color: #fff; background: transparent; }
+  .qty--dark .qty__btn, .qty--dark .qty__input { color: #fff; background: transparent; }
+  .qty--dark .qty__input { border-inline-color: #fff; }
+  .qty--dark .qty__btn:hover { background: rgba(255, 255, 255, 0.14); }
+  .truffles__buy .item__error { flex-basis: 100%; color: #ffb4a8; }
+
+  /* Turkey sandwich */
+  .sandwich { background: var(--accent); color: #fff; display: grid; }
+  .sandwich__body { padding: clamp(48px, 7vw, 96px) var(--gutter); max-width: calc(var(--wrap)); margin-inline: auto; width: 100%; display: flex; flex-direction: column; gap: 18px; }
+  .sandwich__label { font-size: 14px; color: #dbe5ff; }
+  .sandwich__title { font-size: clamp(54px, 8vw, 104px); line-height: 0.95; }
+  .sandwich__text { font-size: 19px; line-height: 1.6; max-width: 34em; color: #fff; }
+  .sandwich__when { font-size: 14px; padding: 10px 14px; border: 1.5px solid #fff; align-self: flex-start; }
+  .sandwich__note { font-size: 16px; color: #dbe5ff; }
+  .sandwich--photo .sandwich__media { position: relative; min-height: 300px; }
+  .sandwich--photo .sandwich__media :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  @media (min-width: 900px) {
+    .sandwich--photo { grid-template-columns: 1fr 1fr; }
+    .sandwich--photo .sandwich__body { padding-inline: clamp(40px, 6vw, 88px); margin: 0; max-width: none; }
+    .sandwich--photo .sandwich__media { min-height: 520px; }
   }
 
   /* Summary */

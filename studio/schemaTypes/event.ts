@@ -1,6 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { CalendarIcon } from '@sanity/icons/Calendar'
-import { photoField, timeField } from './shared'
+import { money, photoField, timeField } from './shared'
 
 export const event = defineType({
   name: 'event',
@@ -26,6 +26,29 @@ export const event = defineType({
       title: 'Booking link (optional)',
       type: 'url',
       description: 'Leave empty and the site says "Just turn up. No need to book."',
+    }),
+    defineField({
+      name: 'sellTickets',
+      title: 'Sell tickets on the website',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Customers pay by card on Stripe and the money goes to the shop. This replaces the booking link above.',
+    }),
+    {
+      ...money('ticketPrice', 'Ticket price', 'In pounds, per ticket, e.g. 25'),
+      hidden: ({ document }: any) => !document?.sellTickets,
+      validation: (rule: any) =>
+        rule.custom((value: number | undefined, ctx: any) =>
+          ctx.document?.sellTickets && !(value > 0) ? 'Add the price of one ticket' : true,
+        ).precision(2),
+    },
+    defineField({
+      name: 'ticketsAvailable',
+      title: 'How many tickets in total (optional)',
+      type: 'number',
+      hidden: ({ document }: any) => !document?.sellTickets,
+      description: 'The site stops selling when they are gone. Leave empty for no limit.',
+      validation: (rule) => rule.integer().min(1),
     }),
     defineField({ name: 'showOnHome', title: 'Show on the home page', type: 'boolean', initialValue: true }),
   ],

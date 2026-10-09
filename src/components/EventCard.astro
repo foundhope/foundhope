@@ -1,9 +1,12 @@
 ---
 import Photo from './Photo.astro';
-import { eventEnds, eventWhen, type ShopEvent } from '../lib/content';
+import { eventEnds, eventWhen, getSettings, type ShopEvent } from '../lib/content';
 interface Props { event: ShopEvent; headingLevel?: 'h2' | 'h3' }
 const { event: e, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
+const s = await getSettings();
+const tickets = !!e.sellTickets && Number(e.ticketPrice) > 0;
+const ticketPrice = tickets ? `£${Number(e.ticketPrice).toFixed(2).replace(/\.00$/, '')}` : '';
 const d = e.date.split('-')[2];
 const month = new Date(`${e.date}T12:00:00Z`).toLocaleDateString('en-GB', { month: 'short', timeZone: 'Europe/London' });
 ---
@@ -20,15 +23,80 @@ const month = new Date(`${e.date}T12:00:00Z`).toLocaleDateString('en-GB', { mont
     <H class="serif event__title">{e.title}</H>
     <p class="event__text">{e.description}</p>
     <div class="event__foot">
-      {e.price && <span class="caps event__price">{e.price}</span>}
-      {e.bookingUrl
-        ? <a href={e.bookingUrl} class="btn btn--accent" rel="noopener" target="_blank">Book now</a>
-        : <span class="event__walkin">Just turn up. No need to book.</span>}
+      {tickets ? (
+        <div class="tix" data-tix data-event={e._id} data-fallback={`mailto:${s.email}?subject=${encodeURIComponent('Tickets: ' + e.title)}`}>
+          <span class="caps event__price">{ticketPrice} a ticket{e.ticketsAvailable ? ' · limited places' : ''}</span>
+          <label class="tix__qty">
+            <span class="visually-hidden">Number of tickets</span>
+            <select data-tix-qty>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option value={n}>{n} ticket{n === 1 ? '' : 's'}</option>)}
+            </select>
+          </label>
+          <button type="button" class="btn btn--accent" data-tix-buy>Buy tickets</button>
+          <p class="tix__msg" data-tix-msg role="alert" hidden></p>
+        </div>
+      ) : (
+        <>
+          {e.price && <span class="caps event__price">{e.price}</span>}
+          {e.bookingUrl
+            ? <a href={e.bookingUrl} class="btn btn--accent" rel="noopener" target="_blank">Book now</a>
+            : <span class="event__walkin">Just turn up. No need to book.</span>}
+        </>
+      )}
     </div>
   </div>
 </article>
 
+<script>
+  // Buy tickets: the shop's order handler checks the price and what's left,
+  // then sends the customer to Stripe to pay.
+  for (const box of document.querySelectorAll<HTMLElement>('[data-tix]')) {
+    if (box.dataset.ready) continue;
+    box.dataset.ready = '1';
+    const btn = box.querySelector<HTMLButtonElement>('[data-tix-buy]')!;
+    const msg = box.querySelector<HTMLElement>('[data-tix-msg]')!;
+    const say = (text: string, mailto?: string) => {
+      msg.textContent = text + ' ';
+      if (mailto) {
+        const a = document.createElement('a');
+        a.href = mailto;
+        a.textContent = 'Email us to book instead.';
+        msg.append(a);
+      }
+      msg.hidden = false;
+    };
+    btn.addEventListener('click', async () => {
+      msg.hidden = true;
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Opening secure payment…';
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ eventId: box.dataset.event, qty: Number(box.querySelector<HTMLSelectElement>('[data-tix-qty]')!.value) }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.url) {
+          window.location.href = out.url;
+          return;
+        }
+        say(out.error || 'Something went wrong.', out.fallback ? box.dataset.fallback : undefined);
+      } catch {
+        say("We couldn't reach the shop. Check your connection and try again.");
+      }
+      btn.disabled = false;
+      btn.textContent = label;
+    });
+  }
+</script>
+
 <style>
+  .tix { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .tix__qty select { height: 48px; padding: 0 12px; border: 1.5px solid var(--ink); background: #fff; font: inherit; font-size: 15px; color: var(--ink); }
+  .tix .btn { border: 0; cursor: pointer; font-family: inherit; }
+  .tix__msg { flex-basis: 100%; margin: 0; font-size: 14px; color: #b42318; }
+  .tix__msg[hidden] { display: none; }
   .event { display: grid; background: #fff; }
   .event__media { position: relative; min-height: 240px; background: var(--stone-2); }
   .event__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

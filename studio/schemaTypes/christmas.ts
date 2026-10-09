@@ -12,6 +12,7 @@ export const christmasSettings = defineType({
     { name: 'dates', title: 'Dates and deposit', default: true },
     { name: 'page', title: 'Page text' },
     { name: 'truffles', title: 'Truffle chocolates' },
+    { name: 'sandwich', title: 'Turkey sandwich' },
   ],
   fields: [
     defineField({
@@ -20,6 +21,14 @@ export const christmasSettings = defineType({
       description: 'Turns the Christmas page, the home page Christmas section and the top banner on or off. Everything also hides itself after the last collection day.',
       type: 'boolean',
       group: 'dates',
+    }),
+    defineField({
+      name: 'onlineOrderingOpen',
+      title: 'Online ordering is open',
+      description: 'Off: the Christmas page shows "Order online coming soon" and no order form. Turn it on once the new list and prices are in.',
+      type: 'boolean',
+      group: 'dates',
+      initialValue: false,
     }),
     defineField({ name: 'year', title: 'Year', type: 'number', group: 'dates', validation: (rule) => rule.required().integer() }),
     defineField({
@@ -65,6 +74,18 @@ export const christmasSettings = defineType({
       description: 'The first line on the Christmas page and the home page Christmas section.',
     }),
     { ...photoField('heroImage', 'Main photo', 'The big photo at the top of the Christmas page.'), group: 'page' },
+    defineField({
+      name: 'sandwichOn',
+      title: 'Show the turkey sandwich section',
+      description: 'A showcase, not an order item. Customers just pop in.',
+      type: 'boolean',
+      group: 'sandwich',
+      initialValue: true,
+    }),
+    defineField({ name: 'sandwichTitle', title: 'Turkey sandwich: heading', type: 'string', group: 'sandwich', description: 'e.g. The turkey sandwich' }),
+    defineField({ name: 'sandwichText', title: 'Turkey sandwich: what it is', type: 'text', rows: 4, group: 'sandwich' }),
+    defineField({ name: 'sandwichWhen', title: 'Turkey sandwich: when it is on', type: 'string', group: 'sandwich', description: 'e.g. "From Monday 7 December". Leave empty to hide.' }),
+    { ...photoField('sandwichImage', 'Turkey sandwich: photo', 'Optional. Without a photo the section shows as a bold text panel.'), group: 'sandwich' },
     defineField({ name: 'truffleText', title: 'Truffles: description', type: 'string', group: 'truffles' }),
     defineField({ name: 'truffleFlavours', title: 'Truffles: flavours', type: 'array', of: [{ type: 'string' }], group: 'truffles' }),
     defineField({
@@ -74,7 +95,7 @@ export const christmasSettings = defineType({
       group: 'truffles',
       description: 'While some flavours are still to be named, the page shows "+ 3 more coming".',
     }),
-    { ...money('trufflePrice', 'Truffles: price per box', 'In pounds. Leave empty to show "Price coming soon".'), group: 'truffles' },
+    { ...money('trufflePrice', 'Truffles: price per box', 'In pounds. Leave empty and the page shows "Price coming soon" with no Add to basket button.'), group: 'truffles' },
     { ...photoField('truffleImage', 'Truffles: photo'), group: 'truffles' },
   ],
   preview: { prepare: () => ({ title: 'Christmas: dates and deposit' }) },

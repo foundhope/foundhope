@@ -1,0 +1,77 @@
+---
+// Where Stripe sends customers after paying for event tickets. The details are
+// fetched from Stripe in the browser, using the session id in the address.
+import Layout from '../../layouts/Layout.astro';
+import { getSettings } from '../../lib/content';
+
+const s = await getSettings();
+---
+<Layout title="Tickets booked" noindex>
+  <section class="thanks">
+    <div class="wrap thanks__inner">
+      <span class="caps eyebrow">Event tickets</span>
+      <h1 class="serif thanks__title">Thank you<span data-name></span></h1>
+      <p class="thanks__lead" data-lead>Checking your payment…</p>
+
+      <div class="card" data-card hidden>
+        <dl class="facts">
+          <div><dt class="caps">Event</dt><dd data-event></dd></div>
+          <div><dt class="caps">When</dt><dd data-when></dd></div>
+          <div><dt class="caps">Tickets</dt><dd data-tickets></dd></div>
+          <div><dt class="caps">Paid</dt><dd data-total></dd></div>
+        </dl>
+        <p class="card__note">A receipt is on its way to <strong data-email></strong>. Just give your name at the door.</p>
+      </div>
+
+      <div class="next">
+        <p>Questions about your booking? Email <a href={`mailto:${s.email}`}>{s.email}</a> or call <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>.</p>
+        <a href="/whats-on" class="btn">Back to what's on</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const id = new URLSearchParams(location.search).get('session_id');
+  const $ = (sel: string) => document.querySelector<HTMLElement>(sel)!;
+  const lead = $('[data-lead]');
+
+  if (!id) {
+    lead.textContent = "We couldn't find your booking details here, but if you paid, your receipt email has everything.";
+  } else {
+    fetch(`/api/tickets/session?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((o) => {
+        if (!o.paid) {
+          lead.textContent = "Your payment hasn't come through yet. If you've just paid, refresh in a minute. If not, your tickets aren't booked.";
+          return;
+        }
+        if (o.firstName) $('[data-name]').textContent = `, ${o.firstName.charAt(0).toUpperCase()}${o.firstName.slice(1)}`;
+        lead.textContent = 'Your tickets are booked.';
+        $('[data-event]').textContent = o.event;
+        $('[data-when]').textContent = o.when;
+        $('[data-tickets]').textContent = o.tickets;
+        $('[data-total]').textContent = o.total;
+        $('[data-email]').textContent = o.email;
+        $('[data-card]').hidden = false;
+      })
+      .catch(() => {
+        lead.textContent = "We couldn't load your booking details just now, but if you paid, your receipt email has everything.";
+      });
+  }
+</script>
+
+<style>
+  .thanks { background: var(--stone); padding-block: clamp(64px, 9vw, 120px); }
+  .thanks__inner { max-width: 760px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+  .thanks__title { font-size: clamp(48px, 6vw, 76px); }
+  .thanks__lead { font-size: 20px; line-height: 1.5; color: var(--ink-soft); }
+  .card { width: 100%; background: #fff; padding: clamp(22px, 4vw, 36px); display: flex; flex-direction: column; gap: 18px; }
+  .card[hidden] { display: none; }
+  .facts { margin: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .facts div { display: flex; flex-direction: column; gap: 4px; }
+  .facts dt { font-size: 11px; color: var(--muted); }
+  .facts dd { margin: 0; font-size: 18px; font-weight: 700; }
+  .card__note { font-size: 15px; color: var(--muted); line-height: 1.55; }
+  .next { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; font-size: 16px; line-height: 1.6; }
+</style>

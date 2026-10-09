@@ -13,7 +13,7 @@ const jump = [
   { href: '#coffee', label: 'Coffee' },
   { href: '#food', label: 'Food' },
   { href: '#counters', label: 'Counters' },
-  { href: '#wine', label: 'Wine' },
+  { href: '#wine', label: 'Wine & spirits' },
   ...(fd.madeByUs.products.length ? [{ href: '#made-by-us', label: 'Made by us' }] : []),
 ];
 
@@ -21,7 +21,7 @@ const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten
 ---
 <Layout
   title="Food & Drink"
-  description="Coffee from Scenery, breakfast and lunch cooked by Nick, counters of British cheese, veg, meat and bread, and a bottle shop of organic and biodynamic wine. Hither Green, SE13."
+  description="Coffee from Scenery, breakfast and lunch cooked by Nick, counters of British cheese, veg, meat and bread, and a bottle shop of organic and biodynamic wine and spirits, with advice from Johan. Hither Green, SE13."
 >
   <!-- INTRO -->
   <section class="fhero">
@@ -124,9 +124,10 @@ const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten
       {fd.wine.image && <Photo src={fd.wine.image} widths={[480, 800, 1200]} sizes="(min-width: 900px) 50vw, 100vw" />}
     </div>
     <div class="split__body">
-      <span class="caps eyebrow">Wine</span>
-      <h2 id="wine-title" class="serif h-big" set:html={emphasis('The *bottle shop*')} />
+      <span class="caps eyebrow">Wine &amp; spirits</span>
+      <h2 id="wine-title" class="serif h-big" set:html={emphasis('Wine, spirits and *the bottle shop*')} />
       {fd.wine.text && <p class="lead">{fd.wine.text}</p>}
+      <p class="johan"><span class="caps johan__label">Ask Johan</span> Our in-house wine and spirits expert. Tell him what you're eating, drinking or giving and he'll point you to the right bottle.</p>
       {fd.wine.picks.length > 0 && (
         <div class="picks">
           <span class="caps picks__title">{fd.wine.picksTitle}</span>
@@ -262,6 +263,8 @@ const DIET: Record<string, string> = { V: 'Vegetarian', VG: 'Vegan', GF: 'Gluten
   .wine .eyebrow { color: #8fb0ff; }
   .wine .lead { color: #e9e7e2; }
   .wine .menu__price { color: #fff; }
+  .johan { font-size: 17px; line-height: 1.55; color: #e9e7e2; max-width: 34em; padding: 16px 0 16px 18px; border-left: 3px solid var(--accent); }
+  .johan__label { display: block; font-size: 12px; color: #8fb0ff; margin-bottom: 4px; }
   .picks { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
   .picks__title { font-size: 13px; color: #8fb0ff; }
   .picks__list { list-style: none; margin: 0; padding: 0; }

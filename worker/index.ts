@@ -4,6 +4,7 @@
 // Everything else goes straight to the files.
 
 import { subscribe, subscribeStatus, type SubscribeEnv } from './subscribe';
+import { buildTicketOrder, type TicketEvent } from './tickets';
 import { buildOrder, lineText, money, orderMetadata, type Category, type ChristmasSettings } from './order';
 
 interface Env extends SubscribeEnv {
@@ -15,7 +16,7 @@ interface Env extends SubscribeEnv {
 }
 
 const SANITY_QUERY = encodeURIComponent(`{
-  "settings": *[_id == "christmasSettings"][0]{ on, depositPercent, onlineOrderCutoff, collectionDates, collectionBy, ordersEmail },
+  "settings": *[_id == "christmasSettings"][0]{ on, onlineOrderingOpen, depositPercent, onlineOrderCutoff, collectionDates, collectionBy, ordersEmail, trufflePrice, truffleFlavours },
   "categories": *[_type == "christmasCategory"]{ items[]{ _key, name, pricing, price, sizes[]{ _key, label, price }, available } }
 }`);
 
@@ -120,10 +121,105 @@ async function checkoutSummary(url: URL, env: Env) {
   }
 }
 
+// POST /api/tickets: check the event and how many tickets are left, then open a
+// Stripe payment page. Stripe collects the email, phone and the name on the booking.
+async function createTicketCheckout(request: Request, env: Env) {
+  if (!env.STRIPE_SECRET_KEY) return json({ error: 'Online tickets are not switched on yet.', fallback: true }, 503);
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Something went wrong. Please try again.' }, 400);
+  }
+  const eventId = typeof body?.eventId === 'string' ? body.eventId.slice(0, 80) : '';
+  if (!/^[A-Za-z0-9_.-]+$/.test(eventId) || eventId.startsWith('drafts.')) return json({ error: 'We couldn\'t find that event.' }, 400);
+
+  const q = encodeURIComponent('*[_type == "event" && _id == $id][0]{ _id, title, date, start, sellTickets, ticketPrice, ticketsAvailable }');
+  const sanity = await fetch(`https://2opy1om7.api.sanity.io/v2025-02-19/data/query/production?query=${q}&$id=${encodeURIComponent(JSON.stringify(eventId))}&perspective=published`);
+  if (!sanity.ok) return json({ error: 'We couldn\'t load the event. Please try again in a minute.' }, 502);
+  const event = ((await sanity.json()) as { result: TicketEvent | null }).result;
+
+  // Tickets already sold, from paid Stripe payments tagged with this event.
+  let sold = 0;
+  if (event?.ticketsAvailable != null) {
+    try {
+      const search = new URLSearchParams({ query: `metadata['event']:'${eventId}' AND status:'succeeded'`, limit: '100' });
+      const found = await stripe(env, `payment_intents/search?${search}`);
+      sold = (found.data ?? []).reduce((n: number, pi: any) => n + (parseInt(pi.metadata?.tickets, 10) || 0), 0);
+    } catch (err) {
+      console.error('Ticket count failed', err);
+      return json({ error: 'We couldn\'t check what\'s left. Please try again in a minute.' }, 502);
+    }
+  }
+
+  const built = buildTicketOrder({ eventId, qty: body?.qty }, event, sold);
+  if (!built.ok) return json({ error: built.error }, 400);
+  const o = built.order;
+
+  const origin = new URL(request.url).origin;
+  const meta: Record<string, string> = { kind: 'event-ticket', event: o.eventId, event_title: o.title, event_date: o.dateLabel, tickets: String(o.qty), total: money(o.total) };
+
+  const p = new URLSearchParams();
+  p.set('mode', 'payment');
+  p.set('locale', 'en-GB');
+  p.set('success_url', `${origin}/whats-on/thanks?session_id={CHECKOUT_SESSION_ID}`);
+  p.set('cancel_url', `${origin}/whats-on?cancelled=1`);
+  p.set('line_items[0][quantity]', String(o.qty));
+  p.set('line_items[0][price_data][currency]', 'gbp');
+  p.set('line_items[0][price_data][unit_amount]', String(o.unit));
+  p.set('line_items[0][price_data][product_data][name]', `Ticket: ${o.title}`.slice(0, 250));
+  p.set('line_items[0][price_data][product_data][description]', o.dateLabel);
+  p.set('phone_number_collection[enabled]', 'true');
+  p.set('custom_fields[0][key]', 'attendee');
+  p.set('custom_fields[0][label][type]', 'custom');
+  p.set('custom_fields[0][label][custom]', 'Name for the booking');
+  p.set('custom_fields[0][type]', 'text');
+  p.set('payment_intent_data[description]', `Tickets: ${o.title} (${o.qty})`.slice(0, 1000));
+  p.set('payment_intent_data[statement_descriptor_suffix]', 'EVENT');
+  for (const [k, v] of Object.entries(meta)) {
+    p.set(`metadata[${k}]`, v);
+    p.set(`payment_intent_data[metadata][${k}]`, v);
+  }
+
+  try {
+    const session = await stripe(env, 'checkout/sessions', { method: 'POST', body: p });
+    return json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe ticket checkout failed', err);
+    return json({ error: 'We couldn\'t open the payment page. Please try again, or call the shop.' }, 502);
+  }
+}
+
+// GET /api/tickets/session?id=cs_...: what the ticket thank-you page shows.
+async function ticketSummary(url: URL, env: Env) {
+  const id = url.searchParams.get('id') ?? '';
+  if (!env.STRIPE_SECRET_KEY || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) return json({ error: 'Not found' }, 404);
+  try {
+    const s = await stripe(env, `checkout/sessions/${id}`);
+    const m = s.metadata ?? {};
+    if (m.kind !== 'event-ticket') return json({ error: 'Not found' }, 404);
+    const attendee = (s.custom_fields ?? []).find((f: any) => f.key === 'attendee')?.text?.value ?? '';
+    return json({
+      paid: s.payment_status === 'paid',
+      firstName: String(attendee).trim().split(' ')[0],
+      email: s.customer_details?.email ?? '',
+      event: m.event_title,
+      when: m.event_date,
+      tickets: m.tickets,
+      total: m.total,
+    });
+  } catch {
+    return json({ error: 'Not found' }, 404);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === '/api/tickets' && request.method === 'POST') return createTicketCheckout(request, env);
+    if (url.pathname === '/api/tickets/session' && request.method === 'GET') return ticketSummary(url, env);
     if (url.pathname === '/api/checkout' && request.method === 'POST') return createCheckout(request, env);
     if (url.pathname === '/api/checkout/session' && request.method === 'GET') return checkoutSummary(url, env);
     // Lets the Christmas page show "Test mode" while the Stripe test key is in.

@@ -3,9 +3,18 @@
     "label": "Hither Green · Since 2010",
     "headline": "Where our favourite things become *your* favourite things",
     "links": [
-      { "text": "Coffee", "href": "/food-and-drink#coffee" },
-      { "text": "Food", "href": "/food-and-drink#food" },
-      { "text": "Bottle shop", "href": "/food-and-drink#wine" }
+      {
+        "text": "Coffee",
+        "href": "/food-and-drink#coffee"
+      },
+      {
+        "text": "Food",
+        "href": "/food-and-drink#food"
+      },
+      {
+        "text": "Wine & spirits",
+        "href": "/food-and-drink#wine"
+      }
     ],
     "image": "shopfront-sketch",
     "imageAlt": "Illustration of the Found Hope shopfront on Hither Green Lane"
@@ -13,25 +22,87 @@
   "inTheShop": {
     "title": "In the shop",
     "tiles": [
-      { "label": "Coffee", "image": "coffee", "alt": "Croissants, butter, jam and a flat white", "href": "/food-and-drink#coffee" },
-      { "label": "Kitchen", "image": "kitchen", "alt": "Squash soup with pumpkin seeds and sourdough", "href": "/food-and-drink#food" },
-      { "label": "Wine", "image": "wine", "alt": "Pouring a glass of red wine", "href": "/food-and-drink#wine" },
-      { "label": "Cheese", "image": "cheese", "alt": "Artisan cheeses in a wooden tray", "href": "/food-and-drink#counters" },
-      { "label": "Fresh produce", "image": "produce", "alt": "Muddy heritage carrots in purple, orange and white", "href": "/food-and-drink#counters" },
-      { "label": "Meat", "image": "meat", "alt": "Rare breed beef cuts", "href": "/food-and-drink#counters" },
-      { "label": "Bakery", "image": "bakery", "alt": "Seeded sourdough loaves", "href": "/food-and-drink#counters" },
-      { "label": "Made by us", "image": "pickles", "alt": "Tubs of our own pickles in the shop window", "href": "/food-and-drink#made-by-us" }
+      {
+        "label": "Coffee",
+        "image": "coffee",
+        "alt": "Croissants, butter, jam and a flat white",
+        "href": "/food-and-drink#coffee"
+      },
+      {
+        "label": "Kitchen",
+        "image": "kitchen",
+        "alt": "Squash soup with pumpkin seeds and sourdough",
+        "href": "/food-and-drink#food"
+      },
+      {
+        "label": "Wine & spirits",
+        "image": "wine",
+        "alt": "Pouring a glass of red wine",
+        "href": "/food-and-drink#wine"
+      },
+      {
+        "label": "Cheese",
+        "image": "cheese",
+        "alt": "Artisan cheeses in a wooden tray",
+        "href": "/food-and-drink#counters"
+      },
+      {
+        "label": "Fresh produce",
+        "image": "produce",
+        "alt": "Muddy heritage carrots in purple, orange and white",
+        "href": "/food-and-drink#counters"
+      },
+      {
+        "label": "Meat",
+        "image": "meat",
+        "alt": "Rare breed beef cuts",
+        "href": "/food-and-drink#counters"
+      },
+      {
+        "label": "Bakery",
+        "image": "bakery",
+        "alt": "Seeded sourdough loaves",
+        "href": "/food-and-drink#counters"
+      },
+      {
+        "label": "Made by us",
+        "image": "pickles",
+        "alt": "Tubs of our own pickles in the shop window",
+        "href": "/food-and-drink#made-by-us"
+      }
     ]
+  },
+  "wine": {
+    "label": "Wine & spirits",
+    "headline": "Wine and spirits. *Ask Johan.*",
+    "text": "Organic and biodynamic wine, and spirits we'd happily pour for our own friends. Johan is our in-house expert. Tell him what you're cooking or celebrating and he'll find the bottle.",
+    "items": [
+      "Organic wine",
+      "Biodynamic wine",
+      "Spirits"
+    ],
+    "linkText": "See the bottle shop",
+    "image": "wine",
+    "imageAlt": "Pouring a glass of red wine"
   },
   "cups": {
     "label": "Made for us",
     "headline": "Our own cups, *made by hand*",
     "text": "Matte white stoneware cups and mugs, made for Found Hope by J Lucas Pottery and stamped with our name on the base. Take one home for your morning coffee.",
-    "items": ["Cups", "Mugs"],
+    "items": [
+      "Cups",
+      "Mugs"
+    ],
     "linkText": "Pick one up in the shop",
     "images": [
-      { "image": "cups-stack", "alt": "Three matte white stoneware cups and mugs, stacked" },
-      { "image": "cups-stamp", "alt": "The base of a cup, stamped Found Hope and J Lucas Pottery" }
+      {
+        "image": "cups-stack",
+        "alt": "Three matte white stoneware cups and mugs, stacked"
+      },
+      {
+        "image": "cups-stamp",
+        "alt": "The base of a cup, stamped Found Hope and J Lucas Pottery"
+      }
     ]
   },
   "ourStory": {

@@ -41,6 +41,9 @@ export type ShopEvent = {
   image?: SanityImage;
   price?: string;
   bookingUrl?: string;
+  sellTickets?: boolean;
+  ticketPrice?: number;
+  ticketsAvailable?: number;
   showOnHome?: boolean;
 };
 
@@ -83,14 +86,14 @@ const IMAGE = `{ ..., asset->{ _id, metadata { dimensions, lqip } } }`;
 const QUERY = `{
   "settings": *[_id == "siteSettings"][0],
   "hours": *[_id == "openingHours"][0],
-  "christmas": *[_id == "christmasSettings"][0]{ ..., heroImage${IMAGE}, truffleImage${IMAGE} },
+  "christmas": *[_id == "christmasSettings"][0]{ ..., heroImage${IMAGE}, truffleImage${IMAGE}, sandwichImage${IMAGE} },
   "categories": *[_type == "christmasCategory"] | order(order asc) { _id, title, source, blurb, image${IMAGE}, items },
   "suppliers": *[_type == "supplier" && defined(slug.current) && show != false] | order(order asc) {
     _id, name, "slug": slug.current, type, from, teaser, image${IMAGE}, website, servedHere, takeHome, onHome,
     about, quote, quoteBy, story, products[]{ ..., image${IMAGE} }
   },
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
-    _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, showOnHome
+    _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, sellTickets, ticketPrice, ticketsAvailable, showOnHome
   },
   "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
@@ -237,12 +240,14 @@ export function eventWhen(e: ShopEvent) {
 export async function getChristmas(today = new Date()) {
   const c = (await load()).christmas;
   if (!c?.collectionDates?.length) {
-    return { live: false, onlineOpen: false } as any;
+    return { live: false, onlineOpen: false, comingSoon: false } as any;
   }
   const dates: string[] = [...c.collectionDates].sort();
   const last = dates[dates.length - 1];
   const collectionDays = dates.map((d) => formatDate(d, { day: 'numeric' }));
   const depositPercent: number = c.depositPercent ?? 50;
+  // "Order online coming soon" until the switch in Sanity is turned on.
+  const comingSoon = c.onlineOrderingOpen !== true;
   return {
     year: c.year,
     intro: c.intro ?? '',
@@ -257,9 +262,17 @@ export async function getChristmas(today = new Date()) {
       price: c.trufflePrice != null ? pence(c.trufflePrice) : null,
       image: c.truffleImage as SanityImage | undefined,
     },
+    sandwich: {
+      on: c.sandwichOn !== false && !!c.sandwichText,
+      title: (c.sandwichTitle || 'The turkey sandwich') as string,
+      text: (c.sandwichText ?? '') as string,
+      when: (c.sandwichWhen ?? '') as string,
+      image: c.sandwichImage as SanityImage | undefined,
+    },
     paymentsLive: siteConfig.paymentsLive,
     live: !!c.on && today <= day(last),
-    onlineOpen: today <= day(c.onlineOrderCutoff),
+    comingSoon,
+    onlineOpen: !comingSoon && today <= day(c.onlineOrderCutoff),
     depositPercent,
     depositRate: depositPercent / 100,
     onlineCutoffText: formatDate(c.onlineOrderCutoff),

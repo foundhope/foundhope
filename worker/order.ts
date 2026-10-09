@@ -9,6 +9,9 @@ export type ChristmasSettings = {
   collectionDates?: string[];
   collectionBy?: string;
   ordersEmail?: string;
+  onlineOrderingOpen?: boolean;
+  trufflePrice?: number;
+  truffleFlavours?: string[];
 };
 
 type Size = { _key: string; label: string; price: number };
@@ -48,6 +51,7 @@ export type Order = {
   notes: string;
 };
 
+export const TRUFFLES = 'truffles';
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const pence = (pounds?: number) => Math.round((pounds ?? 0) * 100);
 
@@ -76,6 +80,7 @@ export function buildOrder(
   now = new Date(),
 ): { ok: true; order: Order } | { ok: false; error: string } {
   if (!settings?.on) return { ok: false, error: 'Christmas orders are closed.' };
+  if (settings.onlineOrderingOpen !== true) return { ok: false, error: 'Online ordering opens soon. Please check back, or pop into the shop.' };
   if (settings.onlineOrderCutoff && londonToday(now) > settings.onlineOrderCutoff) {
     return { ok: false, error: 'Online orders have closed. Please call or pop into the shop.' };
   }
@@ -88,6 +93,13 @@ export function buildOrder(
     const id = str(l.id, 64);
     const qty = Number(l.qty);
     if (!id || !Number.isInteger(qty) || qty < 1 || qty > 20) return { ok: false, error: 'Something in your order looks wrong. Please refresh the page and try again.' };
+    // Truffle chocolates are priced from the Christmas settings, not the list.
+    if (id === TRUFFLES) {
+      if (settings.trufflePrice == null || !(settings.trufflePrice > 0)) return { ok: false, error: 'Truffle chocolates are not available to order yet.' };
+      const flavour = settings.truffleFlavours?.length === 1 ? `, ${settings.truffleFlavours[0].toLowerCase()}` : '';
+      lines.push({ name: `Truffle chocolates${flavour} (box)`, size: null, qty, unit: pence(settings.trufflePrice), approx: false });
+      continue;
+    }
     const item = items.get(id);
     if (!item) return { ok: false, error: 'Something in your order is no longer on the list. Please refresh the page.' };
     if (item.available === false) return { ok: false, error: `Sorry, ${item.name} has sold out. Please refresh the page.` };

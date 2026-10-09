@@ -9,7 +9,7 @@ const placeholderPages = [
 ];
 
 // Pages that should never be in Google, like the order thank-you page.
-const privatePages = ['/christmas/thanks', '/help'];
+const privatePages = ['/christmas/thanks', '/whats-on/thanks', '/help'];
 
 export default defineConfig({
   site: 'https://foundhope.store',

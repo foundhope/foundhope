@@ -16,7 +16,7 @@ const s = await getSettings();
 const hours = await getHours();
 const xmas = await getChristmas();
 const { title, description = s.description, noindex = false, hideNewsletter = false } = Astro.props;
-const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food and bottle shop in Hither Green`;
+const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food, wine and spirits in Hither Green`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 // Banner: the editable notice wins; otherwise show Christmas while online orders are open.
@@ -24,7 +24,9 @@ const banner = s.noticeBanner.on && s.noticeBanner.message
   ? { text: s.noticeBanner.message, link: s.noticeBanner.link, linkText: 'Find out more' }
   : xmas.live && xmas.onlineOpen
     ? { text: `Christmas orders now open · Order online by ${xmas.onlineCutoffText}`, link: '/christmas', linkText: 'Order now' }
-    : null;
+    : xmas.live && xmas.comingSoon
+      ? { text: 'Christmas is coming · Order online coming soon', link: '/christmas', linkText: 'See Christmas' }
+      : null;
 
 // Shop details Google can read directly (schema.org)
 const localBusiness = {
