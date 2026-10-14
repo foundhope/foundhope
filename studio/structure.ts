@@ -28,6 +28,7 @@ export const structure: StructureResolver = (S) => {
       S.divider(),
       single('foodAndDrink', 'Food & Drink page', LemonIcon),
       single('visitPage', 'Visit page', PinIcon),
+      single('reviewSettings', 'Reviews', StarIcon),
       S.listItem()
         .title('Christmas')
         .icon(StarIcon)

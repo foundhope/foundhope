@@ -9,7 +9,7 @@ Built with [Astro](https://astro.build) and hosted on Cloudflare (Workers, servi
 | Path | What it is |
 |---|---|
 | `studio/` | The editor: what Nick and Johan can change, and how the menu is laid out. Config in `sanity.config.ts` |
-| `src/data/` | Copy not yet in Sanity: home page text, Our Story, site name and description, reviews. `christmas.json` holds `paymentsLive` |
+| `src/data/` | Copy not yet in Sanity: home page text, Our Story, site name and description. Google reviews are fetched at build time by `src/lib/reviews.ts` (needs `GOOGLE_PLACES_API_KEY`, optional `GOOGLE_PLACE_ID`). `christmas.json` holds `paymentsLive` |
 | `src/assets/images/` | Photos. Referred to by file name in the data files. Resized and converted to WebP at build time |
 | `src/pages/index.astro` | Home page (Concept C, v2) |
 | `src/pages/[page].astro` | "Coming soon" placeholders for pages not built yet, so every menu link and redirect works |

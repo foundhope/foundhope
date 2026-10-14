@@ -10,7 +10,7 @@ import type { ImageMetadata } from 'astro';
 import { createClient } from '@sanity/client';
 import siteDefaults from '../data/settings.json';
 import siteConfig from '../data/christmas.json';
-import reviews from '../data/reviews.json';
+import { getGoogleReviews, pickReviews } from './reviews';
 import home from '../data/home.json';
 
 export const sanity = createClient({
@@ -95,6 +95,7 @@ const QUERY = `{
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, sellTickets, ticketPrice, ticketsAvailable, showOnHome
   },
+  "reviewSettings": *[_id == "reviewSettings"][0]{ pinned },
   "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
     ..., coffeeImage${IMAGE}, kitchenImage${IMAGE}, wineImage${IMAGE},
@@ -192,7 +193,12 @@ export async function getHours(today = new Date()) {
 // ---------- Home, reviews (still in src/data) ----------
 
 export const getHome = () => home;
-export const getReviews = () => reviews;
+let reviewCache: ReturnType<typeof getGoogleReviews> | null = null;
+export async function getReviews() {
+  reviewCache ??= getGoogleReviews();
+  const { reviewSettings } = await load();
+  return pickReviews(await reviewCache, reviewSettings?.pinned);
+}
 
 // ---------- Suppliers ----------
 
