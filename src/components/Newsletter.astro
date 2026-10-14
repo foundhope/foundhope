@@ -13,7 +13,7 @@ const id = `nl-${variant}`;
     <div class="nl__copy">
       {variant === 'band' && <span class="caps eyebrow">Newsletter</span>}
       <h2 id={`${id}-title`} class:list={[variant === 'band' ? 'serif nl__title' : 'caps nl__title-small']} set:html={variant === 'band' ? emphasis('Hear it *first*') : 'Hear it first'} />
-      <p class="nl__text">Christmas orders opening, tastings and new things on the shelves. Not too often, and you can unsubscribe any time.</p>
+      <p class="nl__text">Sign up to our mailing list to hear about new products and events.</p>
     </div>
     <form class="nl__form" data-newsletter novalidate data-fallback={`mailto:${s.email}?subject=${encodeURIComponent('Please add me to the mailing list')}`}>
       <div class="nl__fields">
