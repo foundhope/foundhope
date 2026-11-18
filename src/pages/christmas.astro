@@ -30,7 +30,7 @@ const formData = {
   paymentsLive: xmas.paymentsLive,
   items: [
     ...categories.flatMap((c) =>
-      c.items.filter((it) => it.available).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
+      c.items.filter((it) => it.available && !it.priceToCome).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
     ),
     ...(truffleOrderable ? [{ id: 'truffles', name: truffleName, price: truffles.price, tiers: null }] : []),
   ],
@@ -139,8 +139,8 @@ const steps = [
                           <span class="item__name">{it.name}</span>
                           {it.detail && <span class="item__detail">{it.detail}{it.perKg && !soon ? ` ${money(it.perKg)}/kg.` : ''}</span>}
                         </div>
-                        {!soon && <span class="display item__price">{it.available ? priceLabel(it) : 'Sold out'}</span>}
-                        {it.available && !soon && <div class="item__controls">
+                        {!soon && <span class="display item__price">{!it.available ? 'Sold out' : it.priceToCome ? 'Price to come' : priceLabel(it)}</span>}
+                        {it.available && !it.priceToCome && !soon && <div class="item__controls">
                           {it.tiers && it.tiers.length > 1 && (
                             <label class="item__size">
                               <span class="visually-hidden">Size for {it.name}</span>

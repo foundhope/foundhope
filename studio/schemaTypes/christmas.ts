@@ -137,7 +137,7 @@ export const christmasCategory = defineType({
               initialValue: 'fixed',
               validation: (rule) => rule.required(),
             }),
-            { ...money('price', 'Price'), hidden: ({ parent }: any) => parent?.pricing !== 'fixed' },
+            { ...money('price', 'Price', 'Leave empty to show "Price to come". It can\'t be ordered until a price is in.'), hidden: ({ parent }: any) => parent?.pricing !== 'fixed' },
             { ...money('perKg', 'Price per kg', 'Shown as a guide, e.g. £24/kg'), hidden: ({ parent }: any) => parent?.pricing !== 'weight' },
             defineField({
               name: 'sizes',

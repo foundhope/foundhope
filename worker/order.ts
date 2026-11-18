@@ -110,6 +110,7 @@ export function buildOrder(
       if (!size) return { ok: false, error: `Please choose a size for ${item.name}.` };
       lines.push({ name: item.name, size: sizes.length > 1 ? size.label : null, qty, unit: pence(size.price), approx: true });
     } else {
+      if (!(item.price != null && item.price > 0)) return { ok: false, error: `${item.name} doesn't have a price yet. Please refresh the page.` };
       lines.push({ name: item.name, size: null, qty, unit: pence(item.price), approx: false });
     }
   }

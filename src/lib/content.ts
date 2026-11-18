@@ -386,6 +386,8 @@ export async function getChristmasMenu() {
       name: it.name,
       detail: it.detail ?? '',
       available: it.available !== false,
+      // A fixed-price item with no price yet shows "Price to come" and can't be ordered.
+      priceToCome: it.pricing === 'fixed' && !(it.price != null && it.price > 0),
       price: it.pricing === 'fixed' ? pence(it.price) : null,
       perKg: it.pricing === 'weight' && it.perKg ? pence(it.perKg) : null,
       tiers:
