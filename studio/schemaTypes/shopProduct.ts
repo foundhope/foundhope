@@ -27,6 +27,13 @@ export const shopProduct = defineType({
       initialValue: true,
       description: 'Off hides it from the Shop page completely.',
     }),
+    defineField({
+      name: 'christmasOffer',
+      title: 'Offer it in the Christmas basket',
+      type: 'boolean',
+      initialValue: false,
+      description: 'On: shows "Add to order" next to the Christmas basket once someone has added something. Collected with their Christmas order.',
+    }),
     defineField({ name: 'order', title: 'Position on the page', type: 'number', description: 'Lower numbers show first', initialValue: 10 }),
   ],
   orderings: [{ title: 'Position', name: 'orderAsc', by: [{ field: 'order', direction: 'asc' }] }],

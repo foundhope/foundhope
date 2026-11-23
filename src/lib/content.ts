@@ -96,7 +96,7 @@ const QUERY = `{
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
     _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, bookInShop, sellTickets, ticketPrice, ticketsAvailable, showOnHome
   },
-  "shop": *[_type == "shopProduct" && show != false && defined(price)] | order(order asc) { _id, name, price, description, image${IMAGE}, available },
+  "shop": *[_type == "shopProduct" && show != false && defined(price)] | order(order asc) { _id, name, price, description, image${IMAGE}, available, christmasOffer },
   "reviewSettings": *[_id == "reviewSettings"][0]{ pinned },
   "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
@@ -226,7 +226,7 @@ export async function getHomeSuppliers() {
 // ---------- Shop ----------
 // Things sold online and collected from the shop, e.g. tote bags.
 
-export type ShopItem = { id: string; name: string; price: number; description: string; image?: SanityImage; available: boolean };
+export type ShopItem = { id: string; name: string; price: number; description: string; image?: SanityImage; available: boolean; christmasOffer: boolean };
 
 export async function getShopItems(): Promise<ShopItem[]> {
   return ((await load()).shop ?? []).map((p: any) => ({
@@ -236,6 +236,7 @@ export async function getShopItems(): Promise<ShopItem[]> {
     description: p.description ?? '',
     image: p.image as SanityImage | undefined,
     available: p.available !== false,
+    christmasOffer: p.christmasOffer === true,
   }));
 }
 

@@ -18,7 +18,8 @@ interface Env extends SubscribeEnv {
 
 const SANITY_QUERY = encodeURIComponent(`{
   "settings": *[_id == "christmasSettings"][0]{ on, onlineOrderingOpen, depositPercent, onlineOrderCutoff, collectionDates, collectionBy, ordersEmail, trufflePrice, truffleFlavours },
-  "categories": *[_type == "christmasCategory"]{ items[]{ _key, name, pricing, price, sizes[]{ _key, label, price }, available } }
+  "categories": *[_type == "christmasCategory"]{ items[]{ _key, name, pricing, price, sizes[]{ _key, label, price }, available } },
+  "offers": *[_type == "shopProduct" && christmasOffer == true && show != false]{ _id, name, price, available }
 }`);
 
 const json = (data: unknown, status = 200) =>
@@ -55,9 +56,9 @@ async function createCheckout(request: Request, env: Env) {
 
   const sanity = await fetch(`https://2opy1om7.api.sanity.io/v2025-02-19/data/query/production?query=${SANITY_QUERY}&perspective=published`);
   if (!sanity.ok) return json({ error: 'We couldn\'t load the Christmas list. Please try again in a minute.' }, 502);
-  const { result } = (await sanity.json()) as { result: { settings: ChristmasSettings | null; categories: Category[] } };
+  const { result } = (await sanity.json()) as { result: { settings: ChristmasSettings | null; categories: Category[]; offers: ShopProduct[] } };
 
-  const built = buildOrder(body, result.settings, result.categories ?? []);
+  const built = buildOrder(body, result.settings, result.categories ?? [], new Date(), result.offers ?? []);
   if (!built.ok) return json({ error: built.error }, 400);
   const o = built.order;
 

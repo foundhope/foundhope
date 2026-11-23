@@ -133,6 +133,8 @@ Things people buy online and collect from the shop. They show on **/shop**.
 
 **Sold out:** turn off **Available to buy**. **Hide it completely:** turn off **Show on the website**.
 
+**Offer it in the Christmas basket:** turn on **Offer it in the Christmas basket** (the tote bag has this on). Once someone adds something to their Christmas order, a small "Carry it home" box offers it with an **Add to order** link. It's collected with their Christmas order and is part of the deposit and balance like everything else.
+
 ### Finding shop orders
 
 Every sale is a payment in **Stripe** with "Shop:" in the description, plus the name for collection and a phone number. Keep the item behind the counter for them. Refund from Stripe the same way as a Christmas deposit.

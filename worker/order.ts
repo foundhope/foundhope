@@ -24,6 +24,8 @@ type SanityItem = {
   available?: boolean;
 };
 export type Category = { items?: SanityItem[] };
+// Shop items (e.g. the tote bag) offered in the Christmas basket. Line id is "shop-<Sanity id>".
+export type OfferItem = { _id: string; name: string; price?: number; available?: boolean };
 
 export type OrderRequest = {
   lines?: { id?: unknown; tier?: unknown; qty?: unknown }[];
@@ -81,6 +83,7 @@ export function buildOrder(
   settings: ChristmasSettings | null,
   categories: Category[],
   now = new Date(),
+  offers: OfferItem[] = [],
 ): { ok: true; order: Order } | { ok: false; error: string } {
   if (!settings?.on) return { ok: false, error: 'Christmas orders are closed.' };
   if (settings.onlineOrderingOpen !== true) return { ok: false, error: 'Online ordering opens soon. Please check back, or pop into the shop.' };
@@ -97,6 +100,13 @@ export function buildOrder(
     const qty = Number(l.qty);
     if (!id || !Number.isInteger(qty) || qty < 1 || qty > 20) return { ok: false, error: 'Something in your order looks wrong. Please refresh the page and try again.' };
     // Truffle chocolates are priced from the Christmas settings, not the list.
+    if (id.startsWith('shop-')) {
+      const offer = offers.find((o) => `shop-${o._id}` === id);
+      if (!offer || !(Number(offer.price) > 0)) return { ok: false, error: 'Something in your order is no longer available. Please refresh the page.' };
+      if (offer.available === false) return { ok: false, error: `Sorry, ${offer.name} has sold out. Please refresh the page.` };
+      lines.push({ name: offer.name, size: null, qty, unit: pence(offer.price), approx: false });
+      continue;
+    }
     const t = TRUFFLE_ID.exec(id);
     if (t) {
       if (settings.trufflePrice == null || !(settings.trufflePrice > 0)) return { ok: false, error: 'Truffle chocolates are not available to order yet.' };
