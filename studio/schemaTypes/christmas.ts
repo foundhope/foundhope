@@ -71,9 +71,9 @@ export const christmasSettings = defineType({
       type: 'text',
       rows: 3,
       group: 'page',
-      description: 'The first line on the Christmas page and the home page Christmas section.',
+      description: 'The first line of the home page Christmas section.',
     }),
-    { ...photoField('heroImage', 'Main photo', 'The big photo at the top of the Christmas page.'), group: 'page' },
+    { ...photoField('heroImage', 'Main photo', 'The picture people see when the Christmas page link is shared, e.g. on WhatsApp or Instagram.'), group: 'page' },
     defineField({
       name: 'sandwichOn',
       title: 'Show the turkey sandwich section',

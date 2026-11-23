@@ -10,19 +10,22 @@ interface Props {
   description?: string;
   noindex?: boolean;
   hideNewsletter?: boolean; // the home page has its own newsletter band
+  shareImage?: string; // full image URL shown when the page is shared (WhatsApp, Instagram, etc.)
 }
 
 const s = await getSettings();
 const hours = await getHours();
 const xmas = await getChristmas();
-const { title, description = s.description, noindex = false, hideNewsletter = false } = Astro.props;
+const { title, description = s.description, noindex = false, hideNewsletter = false, shareImage } = Astro.props;
 const fullTitle = title ? `${title} · ${s.name}, Hither Green` : `${s.name} · Coffee, food, wine and spirits in Hither Green`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 // Banner: the editable notice wins; otherwise show Christmas while online orders are open.
 const banner = s.noticeBanner.on && s.noticeBanner.message
   ? { text: s.noticeBanner.message, link: s.noticeBanner.link, linkText: 'Find out more' }
-  : xmas.live && xmas.onlineOpen
+  : /^\/christmas(\.html)?\/?$/.test(Astro.url.pathname)
+    ? null // already on the Christmas page
+    : xmas.live && xmas.onlineOpen
     ? { text: `Christmas orders now open · Order online by ${xmas.onlineCutoffText}`, link: '/christmas', linkText: 'Order now' }
     : xmas.live && xmas.comingSoon
       ? { text: 'Christmas is coming · Order online coming soon', link: '/christmas', linkText: 'See Christmas' }
@@ -69,6 +72,8 @@ const localBusiness = {
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:locale" content="en_GB" />
+  {shareImage && <meta property="og:image" content={shareImage} />}
+  {shareImage && <meta name="twitter:card" content="summary_large_image" />}
   <meta name="theme-color" content="#1c1c1c" />
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
