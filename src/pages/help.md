@@ -54,6 +54,8 @@ Turn it off again the same way when you're done.
 
 Past events disappear from the website by themselves.
 
+**Booking in the shop:** turn on **Book in the shop** and the event says "Book in the shop or call us" with the shop phone number, instead of "Just turn up". Same night more than once? Make one event per date.
+
 **Selling tickets:** in the event, turn on **Sell tickets on the website**, then add the **Ticket price** and, if places are limited, **How many tickets in total**. The event shows a **Buy tickets** button and customers pay by card on Stripe. Each ticket sale is a payment in Stripe, with the event, number of tickets, name and phone on it. Refund from Stripe the same way as a Christmas deposit.
 
 ### Johan's wine picks
@@ -96,7 +98,7 @@ It shows "Sold out" on the website and can't be ordered.
 - **Christmas orders are open**: switch the whole Christmas page on or off
 - **Online ordering is open**: off shows "Order online coming soon" and hides the order form and prices. Turn on once the new list and prices are in
 - **Turkey sandwich** tab: the showcase section (text, when it's on, optional photo). Not an order item
-- **Truffles**: add the price per box and the Add to basket button appears
+- **Truffles**: add the price per box and an Add to basket button appears for each flavour (one flavour per box)
 - **Last day to order online**: the order form closes itself after this day
 - **Last day to cancel for a full refund**
 - **Last day to order in the shop**
@@ -118,6 +120,22 @@ Every order is a payment in **Stripe**.
 The money goes back to their card in 5 to 10 working days. Stripe keeps its small fee.
 
 ---
+
+## Shop (tote bags etc.)
+
+Things people buy online and collect from the shop. They show on **/shop**.
+
+### Add or change an item
+
+1. **Shop (tote bags etc.)** → tap the item, or the **+** button for a new one.
+2. Name, **Price**, a short **What it is** and a photo.
+3. Press **Publish**.
+
+**Sold out:** turn off **Available to buy**. **Hide it completely:** turn off **Show on the website**.
+
+### Finding shop orders
+
+Every sale is a payment in **Stripe** with "Shop:" in the description, plus the name for collection and a phone number. Keep the item behind the counter for them. Refund from Stripe the same way as a Christmas deposit.
 
 ## Suppliers
 

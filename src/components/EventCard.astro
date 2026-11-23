@@ -40,7 +40,9 @@ const month = new Date(`${e.date}T12:00:00Z`).toLocaleDateString('en-GB', { mont
           {e.price && <span class="caps event__price">{e.price}</span>}
           {e.bookingUrl
             ? <a href={e.bookingUrl} class="btn btn--accent" rel="noopener" target="_blank">Book now</a>
-            : <span class="event__walkin">Just turn up. No need to book.</span>}
+            : e.bookInShop
+              ? <span class="event__walkin">Book in the shop or call us on <a href={`tel:${s.phoneIntl}`}>{s.phone}</a>.</span>
+              : <span class="event__walkin">Just turn up. No need to book.</span>}
         </>
       )}
     </div>

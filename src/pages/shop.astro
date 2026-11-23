@@ -1,0 +1,143 @@
+---
+// Shop: things sold online and collected from the shop, e.g. tote bags.
+// Items, prices and photos are edited in the Studio under "Shop".
+import Layout from '../layouts/Layout.astro';
+import Photo from '../components/Photo.astro';
+import { getShopItems, getSettings, money } from '../lib/content';
+
+const items = await getShopItems();
+const s = await getSettings();
+---
+<Layout
+  title="Shop"
+  description="Found Hope tote bags and more. Buy online and collect from the shop on Hither Green Lane."
+>
+  <section class="shead">
+    <div class="wrap shead__inner">
+      <span class="caps eyebrow">Shop</span>
+      <h1 class="serif shead__title">Take a bit of <em>Found Hope</em> home</h1>
+      <p class="shead__text">Pay online, then collect from the shop at {s.address.street} whenever we're open. We'll keep it behind the counter for you.</p>
+    </div>
+  </section>
+
+  <section class="items" aria-label="Things to buy">
+    <div class="wrap">
+      <p class="cancelled" data-cancelled role="status" hidden>Payment cancelled. Nothing has been charged. You can try again below.</p>
+      {items.length ? (
+        <ul class="items__list">
+          {items.map((p) => (
+            <li class="item">
+              <div class="item__media">
+                {p.image && <Photo src={p.image} widths={[400, 720, 1000]} sizes="(min-width: 900px) 420px, 100vw" class="item__img" />}
+              </div>
+              <div class="item__body">
+                <h2 class="serif item__name">{p.name}</h2>
+                <span class="display item__price">{money(p.price)}</span>
+                {p.description && <p class="item__text">{p.description}</p>}
+                {p.available ? (
+                  <div class="buy" data-buy data-product={p.id} data-fallback={`mailto:${s.email}?subject=${encodeURIComponent(p.name)}`}>
+                    <label class="buy__qty">
+                      <span class="visually-hidden">How many</span>
+                      <select data-buy-qty>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => <option value={n}>{n}</option>)}
+                      </select>
+                    </label>
+                    <button type="button" class="btn btn--accent" data-buy-go>Buy now</button>
+                    <p class="buy__note">Collect from the shop.</p>
+                    <p class="buy__msg" data-buy-msg role="alert" hidden></p>
+                  </div>
+                ) : (
+                  <p class="item__sold caps">Sold out</p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="empty">
+          <h2 class="serif empty__title">Nothing here <em>just yet</em></h2>
+          <p>Pop into the shop to see what's on the shelves.</p>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<script>
+  if (new URLSearchParams(location.search).has('cancelled')) document.querySelector<HTMLElement>('[data-cancelled]')!.hidden = false;
+
+  // Buy now: the shop's handler checks the price in Sanity, then sends the
+  // customer to Stripe to pay.
+  for (const box of document.querySelectorAll<HTMLElement>('[data-buy]')) {
+    const btn = box.querySelector<HTMLButtonElement>('[data-buy-go]')!;
+    const msg = box.querySelector<HTMLElement>('[data-buy-msg]')!;
+    const say = (text: string, mailto?: string) => {
+      msg.textContent = text + ' ';
+      if (mailto) {
+        const a = document.createElement('a');
+        a.href = mailto;
+        a.textContent = 'Email us instead.';
+        msg.append(a);
+      }
+      msg.hidden = false;
+    };
+    btn.addEventListener('click', async () => {
+      msg.hidden = true;
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Opening secure payment…';
+      try {
+        const res = await fetch('/api/shop', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ productId: box.dataset.product, qty: Number(box.querySelector<HTMLSelectElement>('[data-buy-qty]')!.value) }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.url) {
+          location.href = out.url;
+          return;
+        }
+        say(out.error ?? 'Something went wrong. Please try again.', out.fallback ? box.dataset.fallback : undefined);
+      } catch {
+        say('Something went wrong. Please try again.', box.dataset.fallback);
+      }
+      btn.disabled = false;
+      btn.textContent = label;
+    });
+  }
+</script>
+
+<style>
+  .shead { padding-block: clamp(56px, 8vw, 100px) clamp(32px, 4vw, 48px); }
+  .shead__inner { display: flex; flex-direction: column; gap: 20px; }
+  .shead__title { font-size: clamp(50px, 6.6vw, 84px); }
+  .shead__text { font-size: 18px; line-height: 1.6; color: var(--ink-soft); max-width: 36em; }
+
+  .items { background: var(--stone); padding-block: clamp(48px, 6vw, 80px); }
+  .items__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 24px; }
+  .item { background: #fff; display: grid; }
+  .item__media { background: #fff; }
+  .item__img { width: 100%; height: 340px; object-fit: contain; }
+  .item__body { padding: clamp(22px, 4vw, 40px); display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .item__name { font-size: clamp(32px, 3.6vw, 44px); }
+  .item__price { font-size: 26px; }
+  .item__text { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 34em; }
+  .item__sold { font-size: 13px; color: var(--muted); }
+  @media (min-width: 900px) {
+    .item { grid-template-columns: 420px minmax(0, 1fr); }
+    .item__img { height: 100%; min-height: 360px; }
+  }
+
+  .buy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 6px; }
+  .buy__qty select { font: inherit; font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--ink); background: #fff; }
+  .buy__note { flex-basis: 100%; font-size: 14px; color: var(--muted); margin: 0; }
+  .buy__msg { flex-basis: 100%; font-size: 15px; color: #b3261e; margin: 0; }
+  .buy__msg[hidden] { display: none; }
+
+  .cancelled { margin: 0 0 24px; padding: 14px 18px; background: #fff4d6; color: #6b4b00; border-left: 3px solid #e0a100; font-size: 15px; }
+  .cancelled[hidden] { display: none; }
+
+  .empty { background: #fff; padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; gap: 18px; }
+  .empty__title { font-size: clamp(38px, 4.4vw, 56px); }
+  .empty p { font-size: 18px; line-height: 1.6; color: var(--ink-soft); }
+</style>

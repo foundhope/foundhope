@@ -41,6 +41,7 @@ export type ShopEvent = {
   image?: SanityImage;
   price?: string;
   bookingUrl?: string;
+  bookInShop?: boolean;
   sellTickets?: boolean;
   ticketPrice?: number;
   ticketsAvailable?: number;
@@ -93,8 +94,9 @@ const QUERY = `{
     about, quote, quoteBy, story, products[]{ ..., image${IMAGE} }
   },
   "events": *[_type == "event" && defined(date)] | order(date asc, start asc) {
-    _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, sellTickets, ticketPrice, ticketsAvailable, showOnHome
+    _id, title, date, start, end, description, image${IMAGE}, price, bookingUrl, bookInShop, sellTickets, ticketPrice, ticketsAvailable, showOnHome
   },
+  "shop": *[_type == "shopProduct" && show != false && defined(price)] | order(order asc) { _id, name, price, description, image${IMAGE}, available },
   "reviewSettings": *[_id == "reviewSettings"][0]{ pinned },
   "visit": *[_id == "visitPage"][0]{ ..., image${IMAGE} },
   "foodAndDrink": *[_id == "foodAndDrink"][0]{
@@ -219,6 +221,22 @@ export async function getSuppliers(): Promise<Supplier[]> {
 }
 export async function getHomeSuppliers() {
   return (await getSuppliers()).filter((s) => s.onHome).slice(0, 3);
+}
+
+// ---------- Shop ----------
+// Things sold online and collected from the shop, e.g. tote bags.
+
+export type ShopItem = { id: string; name: string; price: number; description: string; image?: SanityImage; available: boolean };
+
+export async function getShopItems(): Promise<ShopItem[]> {
+  return ((await load()).shop ?? []).map((p: any) => ({
+    id: p._id,
+    name: p.name,
+    price: pence(p.price),
+    description: p.description ?? '',
+    image: p.image as SanityImage | undefined,
+    available: p.available !== false,
+  }));
 }
 
 // ---------- Events ----------

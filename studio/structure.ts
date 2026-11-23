@@ -7,6 +7,7 @@ import { BasketIcon } from '@sanity/icons/Basket'
 import { UsersIcon } from '@sanity/icons/Users'
 import { LemonIcon } from '@sanity/icons/Lemon'
 import { PinIcon } from '@sanity/icons/Pin'
+import { TagIcon } from '@sanity/icons/Tag'
 
 export const structure: StructureResolver = (S) => {
   const single = (type: string, title: string, icon: any) =>
@@ -47,6 +48,10 @@ export const structure: StructureResolver = (S) => {
                 ),
             ]),
         ),
+      S.listItem()
+        .title('Shop (tote bags etc.)')
+        .icon(TagIcon)
+        .child(S.documentTypeList('shopProduct').title('Shop').defaultOrdering([{ field: 'order', direction: 'asc' }])),
       S.divider(),
       S.listItem()
         .title('Suppliers')

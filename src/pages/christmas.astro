@@ -9,9 +9,12 @@ const categories = xmas.live ? await getChristmasMenu() : [];
 const s = await getSettings();
 const truffles = xmas.truffles;
 const soon = !!xmas.comingSoon;
-// Add to basket for the salted caramel truffles, once ordering is open and a price is set.
+// Add to basket for the truffles, once ordering is open and a price is set.
+// One box per flavour, so each flavour gets its own basket line (truffles-0, truffles-1, ...).
 const truffleOrderable = xmas.live && !soon && xmas.onlineOpen && truffles.price != null;
-const truffleName = `Truffle chocolates${truffles.flavours.length === 1 ? `, ${truffles.flavours[0].toLowerCase()}` : ''} (box)`;
+const truffleLines = truffles.flavours.length
+  ? truffles.flavours.map((f, i) => ({ id: `truffles-${i}`, flavour: f, name: `Truffle chocolates, ${f.toLowerCase()} (box)` }))
+  : [{ id: 'truffles', flavour: 'Truffle chocolates', name: 'Truffle chocolates (box)' }];
 const sandwich = xmas.sandwich;
 
 type Item = Awaited<ReturnType<typeof getChristmasMenu>>[number]['items'][number];
@@ -32,7 +35,7 @@ const formData = {
     ...categories.flatMap((c) =>
       c.items.filter((it) => it.available && !it.priceToCome).map((it) => ({ id: it.id, name: it.name, price: it.price, tiers: it.tiers })),
     ),
-    ...(truffleOrderable ? [{ id: 'truffles', name: truffleName, price: truffles.price, tiers: null }] : []),
+    ...(truffleOrderable ? truffleLines.map((t) => ({ id: t.id, name: t.name, price: truffles.price, tiers: null })) : []),
   ],
 };
 
@@ -178,15 +181,20 @@ const steps = [
                   )}
                 </ul>
                 {truffleOrderable ? (
-                  <div class="truffles__buy" data-item="truffles" data-cat="truffles">
+                  <div class="truffles__buy">
                     <span class="display truffles__price">{money(truffles.price)} a box</span>
-                    <button type="button" class="btn btn--accent truffles__add" data-step="1" data-for="truffles" data-add>Add to basket</button>
-                    <div class="qty qty--dark" data-truffle-qty role="group" aria-label="How many boxes of truffle chocolates" hidden>
-                      <button type="button" class="qty__btn" data-step="-1" data-for="truffles" aria-label="One less box">−</button>
-                      <input type="number" inputmode="numeric" min="0" max="20" value="0" class="qty__input" data-qty="truffles" aria-label="Boxes of truffle chocolates" />
-                      <button type="button" class="qty__btn" data-step="1" data-for="truffles" aria-label="One more box">+</button>
-                    </div>
-                    <p class="item__error" data-error="truffles" hidden></p>
+                    {truffleLines.map((t) => (
+                      <div class="truffles__row" data-item={t.id} data-cat="truffles">
+                        <span class="caps truffles__flavour">{t.flavour}</span>
+                        <button type="button" class="btn btn--accent truffles__add" data-step="1" data-for={t.id} data-add={t.id}>Add to basket</button>
+                        <div class="qty qty--dark" data-truffle-qty={t.id} role="group" aria-label={`How many boxes of ${t.flavour.toLowerCase()}`} hidden>
+                          <button type="button" class="qty__btn" data-step="-1" data-for={t.id} aria-label="One less box">−</button>
+                          <input type="number" inputmode="numeric" min="0" max="20" value="0" class="qty__input" data-qty={t.id} aria-label={`Boxes of ${t.flavour.toLowerCase()}`} />
+                          <button type="button" class="qty__btn" data-step="1" data-for={t.id} aria-label="One more box">+</button>
+                        </div>
+                        <p class="item__error" data-error={t.id} hidden></p>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <p class="truffles__note">
@@ -360,9 +368,10 @@ const steps = [
         list.append(li);
       }
       for (const el of $$<HTMLElement>('[data-truffle-qty]')) {
-        const n = parseInt(qtyInput('truffles').value, 10) || 0;
+        const id = el.dataset.truffleQty!;
+        const n = parseInt(qtyInput(id).value, 10) || 0;
         el.hidden = n < 1;
-        $<HTMLElement>('[data-add]')!.hidden = n >= 1;
+        $<HTMLElement>(`[data-add="${id}"]`)!.hidden = n >= 1;
       }
       const has = ls.length > 0;
       $('[data-empty]')!.toggleAttribute('hidden', has);
@@ -641,14 +650,16 @@ const steps = [
   }
 
   .truffles__buy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
-  .truffles__price { font-size: 22px; }
+  .truffles__price { font-size: 22px; flex-basis: 100%; }
+  .truffles__row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; flex-basis: 100%; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); }
+  .truffles__flavour { font-size: 12px; flex: 1 1 180px; }
   .truffles__add { border: 0; cursor: pointer; font-family: inherit; }
   .truffles__add[hidden], .qty[hidden] { display: none; }
   .qty--dark { border-color: #fff; background: transparent; }
   .qty--dark .qty__btn, .qty--dark .qty__input { color: #fff; background: transparent; }
   .qty--dark .qty__input { border-inline-color: #fff; }
   .qty--dark .qty__btn:hover { background: rgba(255, 255, 255, 0.14); }
-  .truffles__buy .item__error { flex-basis: 100%; color: #ffb4a8; }
+  .truffles__row .item__error { flex-basis: 100%; color: #ffb4a8; }
 
   /* Turkey sandwich */
   .sandwich { background: var(--accent); color: #fff; display: grid; }

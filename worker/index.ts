@@ -5,6 +5,7 @@
 
 import { subscribe, subscribeStatus, type SubscribeEnv } from './subscribe';
 import { buildTicketOrder, type TicketEvent } from './tickets';
+import { buildShopOrder, shopText, type ShopProduct } from './shop';
 import { buildOrder, lineText, money, orderMetadata, type Category, type ChristmasSettings } from './order';
 
 interface Env extends SubscribeEnv {
@@ -214,12 +215,92 @@ async function ticketSummary(url: URL, env: Env) {
   }
 }
 
+// POST /api/shop: check the item and price in Sanity, then open a Stripe
+// payment page. Everything is collected from the shop, so no delivery address.
+async function createShopCheckout(request: Request, env: Env) {
+  if (!env.STRIPE_SECRET_KEY) return json({ error: 'Online payments are not switched on yet.', fallback: true }, 503);
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Something went wrong. Please try again.' }, 400);
+  }
+  const productId = typeof body?.productId === 'string' ? body.productId.slice(0, 80) : '';
+  if (!/^[A-Za-z0-9_.-]+$/.test(productId) || productId.startsWith('drafts.')) return json({ error: 'We couldn\'t find that item.' }, 400);
+
+  const q = encodeURIComponent('*[_type == "shopProduct" && _id == $id && show != false][0]{ _id, name, price, available }');
+  const sanity = await fetch(`https://2opy1om7.api.sanity.io/v2025-02-19/data/query/production?query=${q}&$id=${encodeURIComponent(JSON.stringify(productId))}&perspective=published`);
+  if (!sanity.ok) return json({ error: 'We couldn\'t load the item. Please try again in a minute.' }, 502);
+  const product = ((await sanity.json()) as { result: ShopProduct | null }).result;
+
+  const built = buildShopOrder({ productId, qty: body?.qty }, product);
+  if (!built.ok) return json({ error: built.error }, 400);
+  const o = built.order;
+
+  const origin = new URL(request.url).origin;
+  const meta: Record<string, string> = { kind: 'shop', product: o.productId, item: o.name, qty: String(o.qty), order: shopText(o), total: money(o.total) };
+
+  const p = new URLSearchParams();
+  p.set('mode', 'payment');
+  p.set('locale', 'en-GB');
+  p.set('success_url', `${origin}/shop/thanks?session_id={CHECKOUT_SESSION_ID}`);
+  p.set('cancel_url', `${origin}/shop?cancelled=1`);
+  p.set('line_items[0][quantity]', String(o.qty));
+  p.set('line_items[0][price_data][currency]', 'gbp');
+  p.set('line_items[0][price_data][unit_amount]', String(o.unit));
+  p.set('line_items[0][price_data][product_data][name]', o.name.slice(0, 250));
+  p.set('line_items[0][price_data][product_data][description]', 'Collect from Found Hope, 216–218 Hither Green Lane');
+  p.set('phone_number_collection[enabled]', 'true');
+  p.set('custom_fields[0][key]', 'collector');
+  p.set('custom_fields[0][label][type]', 'custom');
+  p.set('custom_fields[0][label][custom]', 'Name for collection');
+  p.set('custom_fields[0][type]', 'text');
+  p.set('payment_intent_data[description]', `Shop: ${shopText(o)}, collect in shop`.slice(0, 1000));
+  p.set('payment_intent_data[statement_descriptor_suffix]', 'SHOP');
+  for (const [k, v] of Object.entries(meta)) {
+    p.set(`metadata[${k}]`, v);
+    p.set(`payment_intent_data[metadata][${k}]`, v);
+  }
+
+  try {
+    const session = await stripe(env, 'checkout/sessions', { method: 'POST', body: p });
+    return json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe shop checkout failed', err);
+    return json({ error: 'We couldn\'t open the payment page. Please try again, or call the shop.' }, 502);
+  }
+}
+
+// GET /api/shop/session?id=cs_...: what the shop thank-you page shows.
+async function shopSummary(url: URL, env: Env) {
+  const id = url.searchParams.get('id') ?? '';
+  if (!env.STRIPE_SECRET_KEY || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) return json({ error: 'Not found' }, 404);
+  try {
+    const s = await stripe(env, `checkout/sessions/${id}`);
+    const m = s.metadata ?? {};
+    if (m.kind !== 'shop') return json({ error: 'Not found' }, 404);
+    const collector = (s.custom_fields ?? []).find((f: any) => f.key === 'collector')?.text?.value ?? '';
+    return json({
+      paid: s.payment_status === 'paid',
+      firstName: String(collector).trim().split(' ')[0],
+      email: s.customer_details?.email ?? '',
+      what: `${m.qty} x ${m.item}`,
+      total: m.total,
+    });
+  } catch {
+    return json({ error: 'Not found' }, 404);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/tickets' && request.method === 'POST') return createTicketCheckout(request, env);
     if (url.pathname === '/api/tickets/session' && request.method === 'GET') return ticketSummary(url, env);
+    if (url.pathname === '/api/shop' && request.method === 'POST') return createShopCheckout(request, env);
+    if (url.pathname === '/api/shop/session' && request.method === 'GET') return shopSummary(url, env);
     if (url.pathname === '/api/checkout' && request.method === 'POST') return createCheckout(request, env);
     if (url.pathname === '/api/checkout/session' && request.method === 'GET') return checkoutSummary(url, env);
     // Lets the Christmas page show "Test mode" while the Stripe test key is in.

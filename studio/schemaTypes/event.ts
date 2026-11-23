@@ -25,7 +25,14 @@ export const event = defineType({
       name: 'bookingUrl',
       title: 'Booking link (optional)',
       type: 'url',
-      description: 'Leave empty and the site says "Just turn up. No need to book."',
+      description: 'Leave empty and the site says "Just turn up. No need to book." (unless "Book in the shop" is on).',
+    }),
+    defineField({
+      name: 'bookInShop',
+      title: 'Book in the shop',
+      type: 'boolean',
+      initialValue: false,
+      description: 'On: the site says "Book in the shop or call us" with the shop phone number, instead of "Just turn up".',
     }),
     defineField({
       name: 'sellTickets',

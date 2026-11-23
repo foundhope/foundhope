@@ -52,6 +52,9 @@ export type Order = {
 };
 
 export const TRUFFLES = 'truffles';
+// One box per flavour: "truffles-0" is the first flavour in Sanity, "truffles-1" the second.
+// Plain "truffles" is kept for when no flavours are listed.
+const TRUFFLE_ID = /^truffles(?:-(\d{1,2}))?$/;
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const pence = (pounds?: number) => Math.round((pounds ?? 0) * 100);
 
@@ -94,9 +97,18 @@ export function buildOrder(
     const qty = Number(l.qty);
     if (!id || !Number.isInteger(qty) || qty < 1 || qty > 20) return { ok: false, error: 'Something in your order looks wrong. Please refresh the page and try again.' };
     // Truffle chocolates are priced from the Christmas settings, not the list.
-    if (id === TRUFFLES) {
+    const t = TRUFFLE_ID.exec(id);
+    if (t) {
       if (settings.trufflePrice == null || !(settings.trufflePrice > 0)) return { ok: false, error: 'Truffle chocolates are not available to order yet.' };
-      const flavour = settings.truffleFlavours?.length === 1 ? `, ${settings.truffleFlavours[0].toLowerCase()}` : '';
+      const flavours = settings.truffleFlavours ?? [];
+      let flavour = '';
+      if (t[1] != null) {
+        const f = flavours[Number(t[1])];
+        if (!f) return { ok: false, error: 'That truffle flavour is no longer on the list. Please refresh the page.' };
+        flavour = `, ${f.toLowerCase()}`;
+      } else if (flavours.length === 1) {
+        flavour = `, ${flavours[0].toLowerCase()}`;
+      }
       lines.push({ name: `Truffle chocolates${flavour} (box)`, size: null, qty, unit: pence(settings.trufflePrice), approx: false });
       continue;
     }
