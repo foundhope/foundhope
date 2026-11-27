@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Christmas orders · Found Hope</title>
+<title>Orders · Found Hope</title>
 <style>
   :root { --ink:#111; --grey:#666; --line:#e2e2e2; --bg:#f5f5f5; --blue:#1a3cff; --red:#c62828; }
   * { box-sizing: border-box; }
@@ -43,6 +43,16 @@
   .order.refunded { opacity:.55; }
   .badge { display:inline-block; font-size:12px; font-weight:bold; padding:2px 6px; margin-left:6px; background:var(--red); color:#fff; vertical-align:middle; }
   .badge.part { background:#e08a00; }
+  .event-head { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
+  .seats { font-weight:bold; font-size:17px; }
+  .seats.full { color:var(--red); }
+  table.guests { width:100%; border-collapse:collapse; background:#fff; }
+  table.guests th, table.guests td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.guests th { font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--grey); }
+  table.guests td.n { font-weight:bold; font-size:18px; width:60px; }
+  table.guests a { color:inherit; }
+  table.guests tr.refunded { opacity:.55; }
+  @media (max-width:560px) { table.guests .hide-sm { display:none; } }
   .msg { background:#fff; padding:24px; text-align:center; }
   .msg.err { border-left:4px solid var(--red); text-align:left; }
   @media (max-width:560px) { .order { grid-template-columns:1fr; } .order .money { text-align:left; } }
@@ -59,7 +69,7 @@
 <body>
 <header>
   <div>
-    <h1>Christmas orders</h1>
+    <h1>Orders</h1>
     <small id="status">Loading…</small>
   </div>
   <div class="bar">
@@ -101,14 +111,40 @@
     </div>`;
   }
 
+  function renderEvents(q, showRefunded) {
+    if (data.events === null) return '<div class="msg err"><strong>Couldn\'t load event bookings.</strong> Try Refresh.</div>';
+    return data.events.map((e) => {
+      const list = e.bookings.filter((b) => (showRefunded || b.refund !== 'full') &&
+        (!q || [b.name, b.phone, b.email].join(' ').toLowerCase().includes(q)));
+      const left = e.capacity != null ? Math.max(0, e.capacity - e.sold) : null;
+      const seats = e.capacity != null
+        ? `<span class="seats${left === 0 ? ' full' : ''}">${e.sold} of ${e.capacity} sold${left === 0 ? ' · FULL' : ` · ${left} left`}</span>`
+        : `<span class="seats">${e.sold} sold</span>`;
+      const rows = list.map((b) => {
+        const badge = b.refund === 'full' ? '<span class="badge">Refunded</span>' : b.refund === 'part' ? '<span class="badge part">Part refunded</span>' : '';
+        return `<tr class="${b.refund === 'full' ? 'refunded' : ''}"><td class="n">${b.tickets}</td>
+          <td><strong>${esc(b.name || 'No name given')}</strong>${badge}<br><a href="tel:${esc(b.phone.replace(/\s/g, ''))}">${esc(b.phone)}</a></td>
+          <td class="hide-sm"><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></td>
+          <td>${esc(b.paid)}${b.link ? `<br><a href="${esc(b.link)}" target="_blank" rel="noopener" style="color:var(--blue);font-size:13px">Stripe</a>` : ''}</td></tr>`;
+      }).join('');
+      return `<section class="day"><div class="event-head"><h2>${esc(e.title)}</h2>${seats}</div>
+        <p class="count">${esc(e.when || (e.date ? new Date(e.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : ''))}</p>
+        ${rows ? `<table class="guests"><thead><tr><th>Tickets</th><th>Name</th><th class="hide-sm">Email</th><th>Paid</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="msg">No bookings yet.</div>'}
+      </section>`;
+    }).join('') || '<div class="msg">No events selling tickets.</div>';
+  }
+
   function render() {
     if (!data) return;
     const q = $('q').value.trim().toLowerCase();
     const showRefunded = $('showRefunded').checked;
     const days = Object.keys(data.prep);
 
-    $('tabs').innerHTML = [['all', 'All days'], ...days.map((d) => [d, short(d)])]
+    const hasEvents = Array.isArray(data.events) && data.events.length > 0;
+    $('tabs').innerHTML = [['all', 'All days'], ...days.map((d) => [d, short(d)]), ...(hasEvents ? [['events', 'Events']] : [])]
       .map(([k, label]) => `<button type="button" class="tab" data-k="${esc(k)}" aria-pressed="${view === k}">${esc(label)}</button>`).join('');
+
+    if (view === 'events') { $('out').innerHTML = renderEvents(q, showRefunded); return; }
 
     const match = (o) => (showRefunded || o.refund !== 'full') &&
       (!q || [o.name, o.phone, o.email, o.notes, ...o.items].join(' ').toLowerCase().includes(q));
