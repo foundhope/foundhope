@@ -139,6 +139,115 @@ export function seasonStart(now = new Date()) {
   return Math.floor(Date.UTC(year, 8, 1) / 1000);
 }
 
+// ---- Event tickets ----------------------------------------------------------
+
+export type Booking = {
+  id: string;
+  created: number;
+  name: string;
+  email: string;
+  phone: string;
+  tickets: number;
+  paid: string;
+  refund: 'none' | 'part' | 'full';
+  link: string;
+};
+
+export type EventSummary = {
+  id: string;
+  title: string;
+  when: string;
+  date: string;
+  capacity: number | null;
+  sold: number;
+  bookings: Booking[];
+};
+
+const pounds = (p: unknown) => `£${(Number(p ?? 0) / 100).toFixed(2).replace(/\.00$/, '')}`;
+
+function refundOf(pi: any): 'none' | 'part' | 'full' {
+  const charge = pi && typeof pi.latest_charge === 'object' ? pi.latest_charge : null;
+  const refunded = Number(charge?.amount_refunded ?? 0);
+  if (charge?.refunded || (refunded > 0 && refunded >= Number(pi.amount_received ?? pi.amount))) return 'full';
+  return refunded > 0 ? 'part' : 'none';
+}
+
+// A paid Stripe Checkout session for event tickets -> one booking.
+export function toBooking(s: any): (Booking & { eventId: string; title: string; when: string }) | null {
+  const m = s?.metadata ?? {};
+  if (m.kind !== 'event-ticket' || s.payment_status !== 'paid') return null;
+  const pi = typeof s.payment_intent === 'object' ? s.payment_intent : null;
+  const piId = pi?.id ?? s.payment_intent ?? '';
+  const attendee = String((s.custom_fields ?? []).find((f: any) => f.key === 'attendee')?.text?.value ?? '').trim();
+  return {
+    id: s.id,
+    created: s.created,
+    eventId: m.event ?? '',
+    title: m.event_title ?? '',
+    when: m.event_date ?? '',
+    name: attendee || s.customer_details?.name || '',
+    email: s.customer_details?.email ?? '',
+    phone: s.customer_details?.phone ?? '',
+    tickets: parseInt(m.tickets, 10) || 0,
+    paid: m.total || pounds(s.amount_total),
+    refund: refundOf(pi),
+    link: piId ? `https://dashboard.stripe.com/${s.livemode ? '' : 'test/'}payments/${piId}` : '',
+  };
+}
+
+export function groupEvents(
+  bookings: NonNullable<ReturnType<typeof toBooking>>[],
+  events: { _id: string; title?: string; date?: string; ticketsAvailable?: number | null }[],
+): EventSummary[] {
+  const map = new Map<string, EventSummary>();
+  for (const e of events) {
+    map.set(e._id, { id: e._id, title: e.title ?? '', when: '', date: e.date ?? '', capacity: e.ticketsAvailable ?? null, sold: 0, bookings: [] });
+  }
+  for (const b of bookings) {
+    let e = map.get(b.eventId);
+    if (!e) {
+      e = { id: b.eventId, title: b.title, when: b.when, date: '', capacity: null, sold: 0, bookings: [] };
+      map.set(b.eventId, e);
+    }
+    if (!e.when) e.when = b.when;
+    if (!e.title) e.title = b.title;
+    const { eventId, title, when, ...booking } = b;
+    e.bookings.push(booking);
+    if (b.refund !== 'full') e.sold += b.tickets;
+  }
+  return [...map.values()]
+    .map((e) => ({ ...e, bookings: e.bookings.sort((a, b) => a.name.localeCompare(b.name)) }))
+    .sort((a, b) => (a.date || a.id).localeCompare(b.date || b.id));
+}
+
+async function fetchTicketSessions(env: OrdersEnv) {
+  const all: any[] = [];
+  let after = '';
+  for (let page = 0; page < 20; page++) {
+    const q = new URLSearchParams({ limit: '100', status: 'complete', 'created[gte]': String(seasonStart()) });
+    q.append('expand[]', 'data.payment_intent.latest_charge');
+    if (after) q.set('starting_after', after);
+    const res = await fetch(`https://api.stripe.com/v1/checkout/sessions?${q}`, {
+      headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+    });
+    const data: any = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message ?? `Stripe error ${res.status}`);
+    all.push(...(data.data ?? []));
+    if (!data.has_more || !data.data?.length) break;
+    after = data.data[data.data.length - 1].id;
+  }
+  return all;
+}
+
+// Upcoming events selling tickets, so the page can show "3 of 8 sold" even before the first booking.
+async function fetchTicketEvents() {
+  const q = encodeURIComponent('*[_type == "event" && sellTickets == true && date >= $today] | order(date asc){ _id, title, date, ticketsAvailable }');
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+  const res = await fetch(`https://2opy1om7.api.sanity.io/v2025-02-19/data/query/production?query=${q}&$today=${encodeURIComponent(JSON.stringify(today))}&perspective=published`);
+  if (!res.ok) return [];
+  return (((await res.json()) as any).result ?? []) as { _id: string; title?: string; date?: string; ticketsAvailable?: number | null }[];
+}
+
 async function fetchPayments(env: OrdersEnv) {
   const all: any[] = [];
   let after = '';
@@ -171,7 +280,13 @@ export async function ordersApi(request: Request, env: OrdersEnv): Promise<Respo
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe is not connected.' }, 503);
 
   try {
-    const orders = (await fetchPayments(env)).map(toOrder).filter((o): o is OrderRow => !!o);
+    const [payments, sessions, ticketEvents] = await Promise.all([
+      fetchPayments(env),
+      fetchTicketSessions(env).catch((err) => { console.error('Ticket bookings failed', err); return null; }),
+      fetchTicketEvents().catch(() => []),
+    ]);
+    const orders = payments.map(toOrder).filter((o): o is OrderRow => !!o);
+    const events = sessions ? groupEvents(sessions.map(toBooking).filter((b): b is NonNullable<ReturnType<typeof toBooking>> => !!b), ticketEvents) : null;
     orders.sort((a, b) => a.day - b.day || a.name.localeCompare(b.name));
     const days = [...new Set(orders.map((o) => o.collection))].sort((a, b) => dayNumber(a) - dayNumber(b));
     return json({
@@ -180,6 +295,7 @@ export async function ordersApi(request: Request, env: OrdersEnv): Promise<Respo
       orders,
       prep: Object.fromEntries(days.map((d) => [d, prepList(orders.filter((o) => o.collection === d))])),
       prepAll: prepList(orders),
+      events,
     });
   } catch (err) {
     console.error('Orders page failed', err);
