@@ -7,8 +7,9 @@ import { subscribe, subscribeStatus, type SubscribeEnv } from './subscribe';
 import { buildTicketOrder, type TicketEvent } from './tickets';
 import { buildShopOrder, shopText, type ShopProduct } from './shop';
 import { buildOrder, lineText, money, orderMetadata, type Category, type ChristmasSettings } from './order';
+import { stripeWebhook, type NotifyEnv } from './notify';
 
-interface Env extends SubscribeEnv {
+interface Env extends SubscribeEnv, NotifyEnv {
   ASSETS: { fetch: (request: Request | URL | string) => Promise<Response> };
   // Cloudflare deploy hook URL, added as a secret in the Worker's settings.
   DEPLOY_HOOK_URL?: string;
@@ -297,6 +298,7 @@ async function shopSummary(url: URL, env: Env) {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (url.pathname === '/api/stripe/webhook' && request.method === 'POST') return stripeWebhook(request, env);
 
     if (url.pathname === '/api/tickets' && request.method === 'POST') return createTicketCheckout(request, env);
     if (url.pathname === '/api/tickets/session' && request.method === 'GET') return ticketSummary(url, env);
