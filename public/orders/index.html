@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Christmas orders · Found Hope</title>
+<style>
+  :root { --ink:#111; --grey:#666; --line:#e2e2e2; --bg:#f5f5f5; --blue:#1a3cff; --red:#c62828; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); font-size:16px; line-height:1.45; }
+  header { background:#111; color:#fff; padding:16px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:2; }
+  header h1 { font-size:20px; margin:0; }
+  header small { color:#bbb; display:block; font-size:13px; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; }
+  button, .tab { font:inherit; border:1px solid #fff; background:none; color:#fff; padding:8px 14px; cursor:pointer; border-radius:2px; }
+  button:hover { background:#fff; color:#111; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .tab { border-color:var(--ink); color:var(--ink); background:#fff; }
+  .tab[aria-pressed="true"] { background:var(--blue); border-color:var(--blue); color:#fff; }
+  .tools { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+  .tools input[type=search] { flex:1; min-width:200px; font:inherit; padding:10px 12px; border:1px solid var(--line); }
+  .tools label { color:var(--grey); font-size:14px; }
+  .day { margin-bottom:36px; }
+  .day h2 { font-size:22px; margin:0 0 4px; }
+  .day .count { color:var(--grey); margin:0 0 14px; }
+  .prep { background:#fff; border-left:4px solid var(--blue); padding:14px 18px; margin-bottom:16px; }
+  .prep h3 { margin:0 0 8px; font-size:15px; text-transform:uppercase; letter-spacing:.04em; }
+  .prep table { border-collapse:collapse; width:100%; }
+  .prep td { padding:4px 0; border-bottom:1px solid var(--line); }
+  .prep td.n { width:56px; font-weight:bold; font-size:18px; }
+  .order { background:#fff; padding:14px 18px; margin-bottom:10px; display:grid; grid-template-columns: 1fr auto; gap:6px 16px; }
+  .order .who { font-weight:bold; font-size:17px; }
+  .order .contact { color:var(--grey); font-size:14px; }
+  .order .contact a { color:inherit; }
+  .order ul { margin:6px 0 0; padding-left:20px; grid-column:1 / -1; }
+  .order .money { text-align:right; font-size:14px; }
+  .order .money strong { font-size:17px; display:block; }
+  .order .notes { grid-column:1 / -1; background:#fff7d6; padding:6px 10px; font-size:15px; }
+  .order .foot { grid-column:1 / -1; font-size:13px; color:var(--grey); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .order .foot a { color:var(--blue); }
+  .order.refunded { opacity:.55; }
+  .badge { display:inline-block; font-size:12px; font-weight:bold; padding:2px 6px; margin-left:6px; background:var(--red); color:#fff; vertical-align:middle; }
+  .badge.part { background:#e08a00; }
+  .msg { background:#fff; padding:24px; text-align:center; }
+  .msg.err { border-left:4px solid var(--red); text-align:left; }
+  @media (max-width:560px) { .order { grid-template-columns:1fr; } .order .money { text-align:left; } }
+  @media print {
+    header, .tabs, .tools, .order .foot a { display:none !important; }
+    body { background:#fff; font-size:12px; }
+    main { padding:0; max-width:none; }
+    .day { break-after:page; }
+    .order, .prep { border:1px solid #ccc; break-inside:avoid; margin-bottom:6px; padding:8px 10px; }
+    .order .notes { background:none; border:1px solid #999; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Christmas orders</h1>
+    <small id="status">Loading…</small>
+  </div>
+  <div class="bar">
+    <button type="button" id="refresh">Refresh</button>
+    <button type="button" onclick="window.print()">Print</button>
+  </div>
+</header>
+<main>
+  <div class="tabs" id="tabs"></div>
+  <div class="tools">
+    <input type="search" id="q" placeholder="Search name, phone or item" aria-label="Search orders">
+    <label><input type="checkbox" id="showRefunded"> Show refunded</label>
+  </div>
+  <div id="out"><div class="msg">Loading orders…</div></div>
+</main>
+<script>
+(() => {
+  let data = null;
+  let view = 'all';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+  const short = (label) => label.replace(/,\s*by .*/, '');
+
+  function prepTable(lines, title) {
+    if (!lines || !lines.length) return '';
+    return `<div class="prep"><h3>${esc(title)}</h3><table>${lines.map((l) => `<tr><td class="n">${l.qty}</td><td>${esc(l.item)}</td></tr>`).join('')}</table></div>`;
+  }
+
+  function orderCard(o) {
+    const badge = o.refund === 'full' ? '<span class="badge">Refunded</span>' : o.refund === 'part' ? '<span class="badge part">Part refunded</span>' : '';
+    const placed = new Date(o.created * 1000).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', timeZone:'Europe/London' });
+    return `<div class="order${o.refund === 'full' ? ' refunded' : ''}">
+      <div><div class="who">${esc(o.name)}${badge}</div>
+        <div class="contact"><a href="tel:${esc(o.phone.replace(/\s/g, ''))}">${esc(o.phone)}</a> · <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></div></div>
+      <div class="money">Balance due<strong>${esc(o.balance)}</strong>Total ${esc(o.total)} · Deposit ${esc(o.deposit)}</div>
+      <ul>${o.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
+      ${o.notes ? `<div class="notes"><strong>Note:</strong> ${esc(o.notes)}</div>` : ''}
+      <div class="foot"><span>Ordered ${esc(placed)}</span><a href="${esc(o.link)}" target="_blank" rel="noopener">Open in Stripe</a></div>
+    </div>`;
+  }
+
+  function render() {
+    if (!data) return;
+    const q = $('q').value.trim().toLowerCase();
+    const showRefunded = $('showRefunded').checked;
+    const days = Object.keys(data.prep);
+
+    $('tabs').innerHTML = [['all', 'All days'], ...days.map((d) => [d, short(d)])]
+      .map(([k, label]) => `<button type="button" class="tab" data-k="${esc(k)}" aria-pressed="${view === k}">${esc(label)}</button>`).join('');
+
+    const match = (o) => (showRefunded || o.refund !== 'full') &&
+      (!q || [o.name, o.phone, o.email, o.notes, ...o.items].join(' ').toLowerCase().includes(q));
+
+    const shownDays = view === 'all' ? days : days.filter((d) => d === view);
+    let html = '';
+    if (view === 'all' && !q) html += prepTable(data.prepAll, 'Everything, all days');
+    for (const d of shownDays) {
+      const list = data.orders.filter((o) => o.collection === d && match(o));
+      const live = data.orders.filter((o) => o.collection === d && o.refund !== 'full').length;
+      html += `<section class="day"><h2>${esc(d)}</h2><p class="count">${live} order${live === 1 ? '' : 's'}</p>
+        ${q ? '' : prepTable(data.prep[d], 'Prep list')}
+        ${list.map(orderCard).join('') || '<div class="msg">No orders match.</div>'}</section>`;
+    }
+    $('out').innerHTML = html || '<div class="msg">No Christmas orders yet.</div>';
+  }
+
+  async function load() {
+    $('status').textContent = 'Loading…';
+    try {
+      const res = await fetch('/api/orders', { credentials: 'same-origin', cache: 'no-store' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Couldn\'t load orders.');
+      data = body;
+      const live = data.orders.filter((o) => o.refund !== 'full').length;
+      $('status').textContent = `${live} order${live === 1 ? '' : 's'} · updated ${new Date(data.updated).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })} · ${data.signedInAs}`;
+      render();
+    } catch (e) {
+      $('status').textContent = 'Not loaded';
+      $('out').innerHTML = `<div class="msg err"><strong>${esc(e.message)}</strong><br>Try Refresh. If it keeps happening, message Tom.</div>`;
+    }
+  }
+
+  $('tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) { view = b.dataset.k; render(); } });
+  $('q').addEventListener('input', render);
+  $('showRefunded').addEventListener('change', render);
+  $('refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>
